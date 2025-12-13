@@ -2,7 +2,7 @@
 #tool nuget:?package=NuGet.CommandLine&version=6.4.0
 
 var target = Argument("target", "Build");
-const string version = "1.6.7";
+const string version = "2.0.0";
 
 Task("Clean")
   .Does(() =>
@@ -181,8 +181,8 @@ Task("Build")
 
   // Copy build stuff
   CopyFileToDirectory("../stuff/Reinforced.Typings.settings.xml", contentPath);
-  CopyFileToDirectory("../stuff/Reinforced.Typings.targets", buildPath);
-  CopyFileToDirectory("../stuff/Reinforced.Typings.Multi.targets", multiTargetPath);
+  CopyFileToDirectory("../stuff/Reinforced.Typings.vNext.targets", buildPath);
+  CopyFileToDirectory("../stuff/Reinforced.Typings.vNext.Multi.targets", multiTargetPath);
 
   Information("---------");
   Information("Writing readme");
@@ -203,7 +203,7 @@ Task("Build")
   Information("Updating nuspec");
   Information("---------");
   // Copy nuspec
-  CopyFileToDirectory("../stuff/Reinforced.Typings.nuspec", packageRoot);
+  CopyFileToDirectory("../stuff/Reinforced.Typings.vNext.nuspec", packageRoot);
   
   var rn = string.Empty;
   if (System.IO.File.Exists(System.IO.Path.Combine("../stuff/relnotes", version) + ".md")){
@@ -214,7 +214,7 @@ Task("Build")
   Information("Packaging");
   Information("---------");  
 
-  NuGetPack("../package/Reinforced.Typings.nuspec",new NuGetPackSettings(){
+  NuGetPack("../package/Reinforced.Typings.vNext.nuspec",new NuGetPackSettings(){
     ReleaseNotes = new List<string>() { rn },
     Version = version,
     OutputDirectory = "../"
