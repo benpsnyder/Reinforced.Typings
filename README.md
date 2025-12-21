@@ -1,3 +1,8 @@
+Reinforced.Typings.vNext
+=================
+
+> **Note:** This is an actively maintained fork of [Reinforced.Typings](https://github.com/reinforced/Reinforced.Typings), published as `Reinforced.Typings.vNext` on NuGet. The namespaces remain unchanged for easy migration.
+
 What is that?
 =================
 You develop frontend applications with TypeScript and .NET Backend? You need Reinforced.Typings.
@@ -7,19 +12,38 @@ Moreover, it integrates with MSBuild build process and (re)generates glue code e
 
 Check out [documentation](https://github.com/reinforced/Reinforced.Typings/wiki) to discover numbers of useful features (type substitutions, modules, code generators, fluent configuration, multi-file export, JSDOC). 
 
-Reinforced.Typings is available on [NuGet](https://www.nuget.org/packages/Reinforced.Typings/).
+Installation
 =================
 ```sh
-PM> Install-Package Reinforced.Typings
+PM> Install-Package Reinforced.Typings.vNext
+```
+
+Or via .NET CLI:
+```sh
+dotnet add package Reinforced.Typings.vNext
 ```
 
 **Find out detailed information in Reinforced.Typings [wiki](https://github.com/reinforced/Reinforced.Typings/wiki)**
 
 News
 =================
-> Version **1.6.7** released
+> Version **2.0.2** released
 
-- .NET 10 support. Do not search for 1.6.6 😊
+- Fork published as `Reinforced.Typings.vNext`
+- .NET 5.0, 6.0, 7.0, 8.0, 9.0, and 10.0 support
+- .NET Framework 4.8.1 support via Mono
+- Updated Cake build tooling
+- All namespaces unchanged for easy migration from `Reinforced.Typings`
+
+### Migration from Reinforced.Typings
+
+Simply replace your NuGet package reference:
+```diff
+- <PackageReference Include="Reinforced.Typings" Version="1.6.7" />
++ <PackageReference Include="Reinforced.Typings.vNext" Version="2.0.2" />
+```
+
+No code changes required - all namespaces remain `Reinforced.Typings.*`.
 
 Support policy
 =================
