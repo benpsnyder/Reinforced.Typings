@@ -2,7 +2,7 @@
 #tool nuget:?package=NuGet.CommandLine&version=6.12.1
 
 var target = Argument("target", "Build");
-const string version = "2.0.2";
+const string version = "2.0.3";
 
 Task("Clean")
   .Does(() =>
