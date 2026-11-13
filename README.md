@@ -73,6 +73,20 @@ Generation options (fluent `builder.Global(g => g...)` or `[assembly: TsGlobal(.
 | `EnumsAsUnionTypes()` / `EnumsAsUnionTypes` | off | Enums become `export type E = 0 \| 1` or `"A" \| "B"` instead of `enum`. Code that uses enum members as values (`E.A`, for example in constant initializers) does not compile with this option. |
 | `ReadonlyProperties()` / `ReadonlyProperties` | off | Properties and fields are emitted as `readonly`. |
 | `StrictNullability()` / `StrictNullability` | off | Separates nullable from optional: `int?` and nullable reference types become `T \| null` and stay required; `?` is used only for members that may be absent (`ForceNullable`, or `JsonIgnore` WhenWritingNull/WhenWritingDefault). While on, it replaces `AutoOptionalProperties` for nullability. |
+| `UseNamespaceKeyword()` / `UseNamespaceKeyword` | off | Writes `namespace X {` (and `declare namespace X {` for `.d.ts`) instead of the legacy `module X {`. TypeScript 6.0.3 and 7.0.2 both reject `module X {}` with **error TS1540**, also with `ignoreDeprecations: "6.0"`, so enable this (or `UseModules`) when compiling the output with TypeScript 6 or later. Upstream [#286](https://github.com/reinforced/Reinforced.Typings/issues/286). |
+| `ConvertDocumentationTags()` / `ConvertDocumentationTags` | off | Converts inline XML documentation tags in JSDoc: `<see cref="T:X"/>` and `<seealso>` become `{@link X}` when X is an exported type and plain text otherwise (members become `Type.Member`); `<see href>` becomes `{@link url text}`; `<see langword>`, `<paramref>`, `<typeparamref>` become their names; `<c>`/`<code>` become backtick code; other tags keep their text. Without it the XML is copied as it is. Upstream [#310](https://github.com/reinforced/Reinforced.Typings/issues/310). |
+
+#### Upstream issues fixed in 3.1.0
+
+Always on, because they only remove build failures or invalid output:
+
+- [#313](https://github.com/reinforced/Reinforced.Typings/issues/313), [#231](https://github.com/reinforced/Reinforced.Typings/issues/231): a build with `TypeScriptTarget` set but no TypeScript MSBuild targets imported no longer fails with MSB4057 "The target CompileTypeScript does not exist"; projects that do import them still compile their TypeScript after generation.
+- [#284](https://github.com/reinforced/Reinforced.Typings/issues/284), [#206](https://github.com/reinforced/Reinforced.Typings/issues/206): RT0999 "Could not load file or assembly System.Text.Json, Version=11.0.0.0" when the consumer references a package newer than the runtime that runs rtcli; the runtime's copy of the assembly is used instead.
+- [#250](https://github.com/reinforced/Reinforced.Typings/issues/250): explicit interface implementations (`string IFoo.Bar`) are no longer exported (they produced `Namespace.IFoo.Bar: string`, which is not valid TypeScript); the interface is exported on its own.
+- [#221](https://github.com/reinforced/Reinforced.Typings/issues/221): `ulong` enums with values above `long.MaxValue` no longer throw; negative values of signed enums stay negative.
+- [#226](https://github.com/reinforced/Reinforced.Typings/issues/226): `rtcli profile` without a path prints usage and exits with code 1 instead of throwing; a missing profile file also exits with code 1.
+
+Opt-in, because they change output: `UseNamespaceKeyword` ([#286](https://github.com/reinforced/Reinforced.Typings/issues/286)) and `ConvertDocumentationTags` ([#310](https://github.com/reinforced/Reinforced.Typings/issues/310)), in the table above.
 
 #### Effect Schema emitter
 
