@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net481;net10.0;net11.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
@@ -8,6 +8,8 @@
     <StartupObject>Reinforced.Typings.Cli.Bootstrapper</StartupObject>
     <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- The task runs "dotnet rtcli.dll"; a per-OS native launcher is never used. -->
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,5 +18,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Reinforced.Typings\Reinforced.Typings.csproj" />
+  </ItemGroup>
+
+  <!-- Consumers' assemblies may reference ASP.NET Core types, which must load from the shared framework. -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net481'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 </Project>
