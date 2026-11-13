@@ -91,11 +91,13 @@ namespace Reinforced.Typings
             {
                 refProc = (ReferenceProcessorBase)Activator.CreateInstance(_context.Global.ReferencesProcessorType);
             }
+            var namespaces = new List<RtNamespace>();
             if (!_context.Hierarchical)
             {
                 var file = ExportTypes();
                 file.ApplyReferenceProcessor(refProc);
                 _context.FileOperations.Export(_context.TargetFile, file);
+                namespaces.AddRange(file.Namespaces);
             }
             else
             {
@@ -105,7 +107,19 @@ namespace Reinforced.Typings
                     var file = ExportTypes(kv.Key);
                     file.ApplyReferenceProcessor(refProc);
                     _context.FileOperations.Export(path, file);
+                    namespaces.AddRange(file.Namespaces);
                 }
+            }
+
+            if (!string.IsNullOrEmpty(_context.EffectSchemaFile))
+            {
+                var text = new Generators.EffectSchemaEmitter(_context).Emit(namespaces);
+                var textOps = _context.FileOperations as ITextFilesOperations;
+                if (textOps == null)
+                {
+                    throw new InvalidOperationException("The configured file operations do not implement ITextFilesOperations, so the Effect Schema module cannot be written.");
+                }
+                textOps.ExportText(_context.EffectSchemaFile, text);
             }
 
             _context.Unlock();

@@ -25,6 +25,19 @@ namespace E2E.Consumer
             builder.ExportAsInterface<Address>().WithPublicProperties();
             builder.ExportAsInterface<IAuditable>().WithPublicProperties();
             builder.ExportAsEnum<Currency>().UseString();
+#if RT_E2E_MODERN
+            // "modern" variant: every 3.1.0 option that applies to a single-file namespace export.
+            builder.Global(g => g
+                .UseSystemTextJson()
+                .StrictNullability()
+                .ReadonlyProperties()
+                .EnumsAsUnionTypes());
+            builder.ExportAsEnum<E2E.Consumer.Modern.Channel>();
+            builder.ExportAsInterface<E2E.Consumer.Modern.Payment>().WithPublicProperties();
+            builder.ExportAsInterface<E2E.Consumer.Modern.CardPayment>().WithPublicProperties();
+            builder.ExportAsInterface<E2E.Consumer.Modern.CashPayment>().WithPublicProperties();
+            builder.ExportAsInterface<E2E.Consumer.Modern.Customer>().WithPublicProperties();
+#endif
         }
     }
 }

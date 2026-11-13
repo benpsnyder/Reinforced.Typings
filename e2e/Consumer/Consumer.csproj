@@ -17,6 +17,15 @@
     <Deterministic>true</Deterministic>
   </PropertyGroup>
 
+  <!--
+    -p:RtE2EVariant=modern compiles ModernModels.cs and the matching fluent configuration, and
+    also writes the Effect Schema module (golden files consumer.modern.ts / consumer.modern.schema.ts).
+  -->
+  <PropertyGroup Condition="'$(RtE2EVariant)' == 'modern'">
+    <DefineConstants>$(DefineConstants);RT_E2E_MODERN</DefineConstants>
+    <RtEffectSchemaFile>$(MSBuildProjectDirectory)/generated/consumer.schema.ts</RtEffectSchemaFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Reinforced.Typings.vNext" Version="$(RtPackageVersion)" />
   </ItemGroup>

@@ -12,7 +12,7 @@ using Reinforced.Typings.Visitors.Typings;
 
 namespace Reinforced.Typings.Tests.Core
 {
-    public class MockFileOperations : IFilesOperations
+    public class MockFileOperations : IFilesOperations, ITextFilesOperations
     {
         public bool DeployCalled { get; private set; }
         public bool TempRegistryCleared { get; private set; }
@@ -34,6 +34,11 @@ namespace Reinforced.Typings.Tests.Core
         public void ClearTempRegistry()
         {
             TempRegistryCleared = true;
+        }
+
+        public void ExportText(string fileName, string content)
+        {
+            ExportedFiles[fileName] = content;
         }
 
         public void Export(string fileName, ExportedFile file)
