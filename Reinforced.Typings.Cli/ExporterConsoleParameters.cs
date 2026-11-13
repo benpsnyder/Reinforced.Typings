@@ -101,6 +101,26 @@ Example:   rtcli.exe SuppressedWarnings=""RTW0001;2;3"" ")]
         public string SuppressedWarnings { get; set; }
 
         /// <summary>
+        /// Check mode: generate in memory and fail when the files on disk differ, without writing anything
+        /// </summary>
+        [ConsoleHelp(@"
+Boolean parameter that switches check mode on.
+In check mode the typings are generated in memory and compared
+with the files on disk; nothing is written. Any difference
+fails with error RTE0019 (for CI drift gates).
+Example:   rtcli.exe CheckMode=""true"" ")]
+        public bool CheckMode { get; set; }
+
+        /// <summary>
+        /// Target file for the Effect Schema module (optional)
+        /// </summary>
+        [ConsoleHelp(@"
+Target file for the Effect Schema module emitted alongside the
+TypeScript output. Not set (default): no Effect Schema module.
+Example:   rtcli.exe EffectSchemaFile=""C:\path\to\schemas.ts"" ")]
+        public string EffectSchemaFile { get; set; }
+
+        /// <summary>
         /// Validates input parameters
         /// </summary>
         public void Validate()
@@ -130,6 +150,8 @@ Example:   rtcli.exe SuppressedWarnings=""RTW0001;2;3"" ")]
             result.DocumentationFilePath = tr.ReadLine();
             result.ConfigurationMethod = tr.ReadLine();
             result.SuppressedWarnings = tr.ReadLine();
+            result.CheckMode = bool.Parse(tr.ReadLine());
+            result.EffectSchemaFile = tr.ReadLine();
             result.SourceAssemblies = new string[int.Parse(tr.ReadLine())];
             for (int i = 0; i < result.SourceAssemblies.Length; i++)
             {
@@ -147,6 +169,8 @@ Example:   rtcli.exe SuppressedWarnings=""RTW0001;2;3"" ")]
             tw.WriteLine(DocumentationFilePath);
             tw.WriteLine(ConfigurationMethod);
             tw.WriteLine(SuppressedWarnings);
+            tw.WriteLine(CheckMode);
+            tw.WriteLine(EffectSchemaFile);
             tw.WriteLine(SourceAssemblies.Length);
             foreach (var sourceAssembly in SourceAssemblies)
             {

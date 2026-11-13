@@ -168,6 +168,8 @@ namespace Reinforced.Typings.Cli
                 TargetDirectory = parameters.TargetDirectory,
                 TargetFile = parameters.TargetFile,
                 DocumentationFilePath = parameters.DocumentationFilePath,
+                CheckMode = parameters.CheckMode,
+                EffectSchemaFile = string.IsNullOrEmpty(parameters.EffectSchemaFile) ? null : parameters.EffectSchemaFile,
                 SuppressedWarningCodes = ParseSuppressedWarnings(parameters.SuppressedWarnings)
             };
             return context;

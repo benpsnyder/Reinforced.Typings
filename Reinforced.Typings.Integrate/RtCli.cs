@@ -100,6 +100,16 @@ namespace Reinforced.Typings.Integrate
         /// </summary>
         public string SuppressedWarnings { get; set; }
 
+        /// <summary>
+        /// Check mode: compare generated output with the files on disk and fail on any difference
+        /// </summary>
+        public bool CheckMode { get; set; }
+
+        /// <summary>
+        /// Target file for the Effect Schema module (empty: not emitted)
+        /// </summary>
+        public string EffectSchemaFile { get; set; }
+
         /// <summary>Projects may set this to override a task's ToolName. Tasks may override this to prevent that.</summary>
         public override string ToolExe
         {
@@ -192,7 +202,9 @@ namespace Reinforced.Typings.Integrate
                 DocumentationFilePath = DocumentationFilePath.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)
                     ? DocumentationFilePath
                     : String.Empty,
-                ConfigurationMethod = ConfigurationMethod
+                ConfigurationMethod = ConfigurationMethod,
+                CheckMode = CheckMode,
+                EffectSchemaFile = FixTargetPath(EffectSchemaFile)
             };
 
             var tmpFile = Path.GetTempFileName();

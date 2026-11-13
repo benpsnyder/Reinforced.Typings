@@ -84,6 +84,36 @@ namespace Reinforced.Typings
             }
         }
         
+        private bool _checkMode;
+        /// <summary>
+        /// Check mode: generate in memory and compare with the files on disk instead of writing them.
+        /// Any difference fails the export with RTE0019. Files on disk are never modified in check mode.
+        /// </summary>
+        public bool CheckMode
+        {
+            get { return _checkMode; }
+            set
+            {
+                if (_isLocked) return;
+                _checkMode = value;
+            }
+        }
+
+        private string _effectSchemaFile;
+        /// <summary>
+        /// When set, an Effect Schema module for the exported DTOs is written to this file
+        /// alongside the TypeScript output. Empty (default) disables the Effect Schema emitter.
+        /// </summary>
+        public string EffectSchemaFile
+        {
+            get { return _effectSchemaFile; }
+            set
+            {
+                if (_isLocked) return;
+                _effectSchemaFile = value;
+            }
+        }
+
         private HashSet<int> _suppressedWarningCodes = new HashSet<int>();
         /// <summary>
         ///     Gets or sets the list of suppressed warning codes
