@@ -113,10 +113,12 @@
 
 		<!--
 			Generation options added in 3.1.0 are set in fluent configuration (builder.Global(g => g...))
-			or [assembly: TsGlobal(...)], all off by default: UseSystemTextJson, JsonNamingPolicy,
-			UseTypeImports, EnumsAsUnionTypes, ReadonlyProperties, StrictNullability,
-			UseNamespaceKeyword ("namespace X {" instead of "module X {", which TypeScript 6 and 7 reject
-			with TS1540) and ConvertDocumentationTags (see cref to {@link ...} in JSDoc). See README.md.
+			or [assembly: TsGlobal(...)], off by default: UseSystemTextJson, JsonNamingPolicy,
+			UseTypeImports, EnumsAsUnionTypes, ReadonlyProperties, StrictNullability and
+			ConvertDocumentationTags (see cref to {@link ...} in JSDoc).
+			UseNamespaceKeyword is ON by default since 3.1.0 ("namespace X {" instead of "module X {",
+			which TypeScript 6 and 7 reject with TS1540); UseNamespaceKeyword(false) restores "module".
+			See README.md.
 		-->
 	</PropertyGroup>
 	

@@ -226,7 +226,7 @@ Measured with `e2e/measure.cs` (40 runs after 3 warm-ups per tool, back to back;
 
 ### 3.1.0 (2026-11-12)
 
-Branch `feat/3.1` from `master` after 3.0.0. Every new behaviour is behind an option that defaults to off, except item 1, which changes no content. With no new option set, the e2e output is byte-identical to `e2e/golden/consumer.ts` on net10.0 and net11.0 (macOS) and the 3.0.0 unit tests pass unchanged.
+Branch `feat/3.1` from `master` after 3.0.0. Every new behaviour is behind an option that defaults to off, except item 1, which changes no content. With no new option set, the e2e output was byte-identical to the 3.0.0 golden on net10.0 and net11.0 (macOS) and the 3.0.0 unit tests passed unchanged; the TypeScript 6/7 decision at the end of this record later changed two things in the default output.
 
 | Item | What was done | Option |
 | --- | --- | --- |
@@ -242,3 +242,10 @@ Measured (Apple M2 Ultra, macOS 27.2, .NET SDK 11.0.100, e2e consumer, `dotnet b
 Verified only by the Windows CI job, not locally: net481 unit tests (including the look-alike System.Text.Json attributes) and the net481/MSBuild.exe e2e runs. The modern e2e variant needs System.Text.Json and runs on net10.0 only (`--modern-run` picks the first non-net4x framework).
 
 Dropped: nothing that was started. Not attempted: the deferred items above.
+
+Owner decision after the upstream fixes: the 3.1.0 default output must compile under TypeScript 6 and 7. Two default changes, so 3.1.0 is no longer byte-identical to 3.0.0 by default:
+
+- `UseNamespaceKeyword` defaults to true. `module X {}` is error TS1540 in TypeScript 6.0.3 and 7.0.2 (and in `@typescript/typescript6` 6.0.2), not a warning, and `ignoreDeprecations: "6.0"` does not silence it. `UseNamespaceKeyword(false)` restores the old keyword. Modules mode already wrote `export namespace`; single-file and hierarchical `.ts` and `.d.ts` output now write `namespace` / `declare namespace`.
+- Stub method bodies of exported classes are `return null!;` (and `Promise.resolve(null!)`), which type-check under `strictNullChecks`; `return null;` was TS2322 for non-nullable return types.
+
+Golden type-check, strict, TypeScript 6.0.3 and 7.0.2 (errors per compiler, before, then after): `consumer.ts` 5 then 0 (3 TS1540, 2 TS2322); `consumer.modern.ts` 8 then 0 (6 TS1540, 2 TS2322); `consumer.modern.schema.ts` 0 then 0. The same check with the pinned CI packages (`@typescript/typescript6` 6.0.2, `typescript` 7.0.2, `effect` 4.1.3) is `e2e/typecheck.cs`, run by the Linux CI job.
