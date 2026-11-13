@@ -38,6 +38,14 @@ foreach (var fw in options.Frameworks) runs.Add(($"dotnet-{fw}", fw, null, [], d
 if (options.MsBuild is not null) runs.Add(("msbuild-net481", "net481", options.MsBuild, [], defaultGolden));
 // Same consumer with the TypeScript-bypass task enabled (defect 8 regression check).
 if (options.Bypass) runs.Add(($"bypass-{options.Frameworks[0]}", options.Frameworks[0], null, ["-p:RtBypassTypeScriptCompilation=true"], defaultGolden));
+// Upstream #313/#231: TypeScriptTarget set without the TypeScript MSBuild targets must not fail (MSB4057);
+// with them (a stub CompileTypeScript), Reinforced.Typings must still run CompileTypeScript.
+foreach (var tsFw in options.Frameworks.Where(f => !f.StartsWith("net4")).Take(1))
+{
+    runs.Add(($"tstarget-{tsFw}", tsFw, null, ["-p:TypeScriptTarget=ES2020"], defaultGolden));
+    runs.Add(($"tsstub-{tsFw}", tsFw, null, ["-p:TypeScriptTarget=ES2020", "-p:RtE2ETypeScriptStub=true"],
+        [("consumer.ts", "consumer.ts"), ("ts-compiled.txt", "ts-stub-marker.txt")]));
+}
 // System.Text.Json needs .NET, so the modern variant uses the first non-.NET Framework target.
 var modernFw = options.Frameworks.FirstOrDefault(f => !f.StartsWith("net4"));
 if (options.Modern && modernFw is not null)

@@ -30,6 +30,8 @@
     <PackageReference Include="Reinforced.Typings.vNext" Version="$(RtPackageVersion)" />
   </ItemGroup>
 
+  <Import Project="TypeScriptStub.targets" Condition="'$(RtE2ETypeScriptStub)' == 'true'" />
+
   <!--
     Records what the RtCli task passes to rtcli (source assembly, XML doc file, configuration
     method, references) so e2e/measure.cs can time the tool in isolation.
