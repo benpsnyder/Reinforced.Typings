@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    End-to-end consumer of the Reinforced.Typings.vNext package.
+    The e2e runner (e2e/run.cs) copies this folder to a scratch directory and builds it once per
+    target framework against a local package feed:
+      -p:RtE2EFramework=<tfm> -p:RtPackageVersion=<version>
+  -->
+  <PropertyGroup>
+    <TargetFramework>$(RtE2EFramework)</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <RootNamespace>E2E.Consumer</RootNamespace>
+    <AssemblyName>E2E.Consumer</AssemblyName>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Reinforced.Typings.vNext" Version="$(RtPackageVersion)" />
+  </ItemGroup>
+
+  <!--
+    Records what the RtCli task passes to rtcli (source assembly, XML doc file, configuration
+    method, references) so e2e/measure.cs can time the tool in isolation.
+  -->
+  <Target Name="RtE2ERecordInputs" AfterTargets="CoreCompile">
+    <ItemGroup>
+      <_RtE2EInput Include="@(IntermediateAssembly->'source=%(FullPath)')" />
+      <_RtE2EInput Include="doc=$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/$(DocumentationFile)'))" />
+      <_RtE2EInput Include="method=$(RtConfigurationMethod)" />
+      <_RtE2EInput Include="@(ReferencePath->'ref=%(FullPath)')" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(ProjectDir)generated/rt-inputs.txt" Lines="@(_RtE2EInput)" Overwrite="true" />
+  </Target>
+</Project>

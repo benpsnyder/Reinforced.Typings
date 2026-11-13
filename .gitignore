@@ -221,3 +221,6 @@ docplan.txt
 
 # Stray XML-doc output from the old .Dev projects
 *.Dev.xml
+
+# e2e consumer output when built in place
+e2e/Consumer/generated/

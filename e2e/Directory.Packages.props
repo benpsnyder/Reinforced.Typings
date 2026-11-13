@@ -1,0 +1,6 @@
+<Project>
+  <!-- The e2e scripts and consumer reference packages with explicit versions. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>
