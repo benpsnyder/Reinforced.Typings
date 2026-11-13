@@ -18,6 +18,14 @@
   </PropertyGroup>
 
   <!--
+    Upstream #284/#206: -p:RtE2ESystemTextJson=<version> references a System.Text.Json package
+    whose assembly version is newer than the runtime's (for example 11.0.0 on net10.0).
+  -->
+  <ItemGroup Condition="'$(RtE2ESystemTextJson)' != ''">
+    <PackageReference Include="System.Text.Json" Version="$(RtE2ESystemTextJson)" />
+  </ItemGroup>
+
+  <!--
     -p:RtE2EVariant=modern compiles ModernModels.cs and the matching fluent configuration, and
     also writes the Effect Schema module (golden files consumer.modern.ts / consumer.modern.schema.ts).
   -->

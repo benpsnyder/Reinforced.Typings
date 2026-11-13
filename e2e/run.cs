@@ -54,6 +54,13 @@ if (options.Modern && modernFw is not null)
         ["-p:RtE2EVariant=modern", "-p:RtSuppress=RTW0016%3BRTW0017"],
         [("consumer.ts", "consumer.modern.ts"), ("consumer.schema.ts", "consumer.modern.schema.ts")]));
 }
+// Upstream #284/#206: a System.Text.Json package newer than the net10.0 runtime's (11.0.0) failed with RT0999.
+if (options.Modern && options.Frameworks.Contains("net10.0"))
+{
+    runs.Add(("stj11-net10.0", "net10.0", null,
+        ["-p:RtE2EVariant=modern", "-p:RtSuppress=RTW0016%3BRTW0017", "-p:RtE2ESystemTextJson=11.0.0"],
+        [("consumer.ts", "consumer.modern.ts"), ("consumer.schema.ts", "consumer.modern.schema.ts")]));
+}
 
 var failures = 0;
 var results = new List<string>();

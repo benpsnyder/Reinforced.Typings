@@ -142,7 +142,8 @@ namespace Reinforced.Typings.Cli
             AssemblyName nm = new AssemblyName(assemblyName.Name);
             var paths = LookupPossibleAssemblyPath(nm.Name, false);
             Assembly a = null;
-            
+            var failures = new List<object[]>();
+
             foreach (var path in paths)
             {
                 try
@@ -152,15 +153,15 @@ namespace Reinforced.Typings.Cli
                         BuildWarn(ErrorMessages.RTW0013_AssemblyMayNotBeResolvedIncorrectly, new object[] { string.Format("{0} (from {1})",nm.Name, path) });
                         continue;
                     }
-                    
+
                     a = context.LoadFromAssemblyPath(path);
                 }
                 catch (Exception ex)
                 {
-                    BuildWarn(ErrorMessages.RTW0014_AssemblyFailedToLoad, new object[] { string.Format("{0} (from {1})",nm.Name, path), ex });
+                    failures.Add(new object[] { string.Format("{0} (from {1})",nm.Name, path), ex });
                     continue;
                 }
-                
+
                 _alreadyLoaded[assemblyName.FullName] = a;
                 _totalLoadedAssemblies++;
                 break;
@@ -169,8 +170,46 @@ namespace Reinforced.Typings.Cli
 #endif
             }
 
+            if (a == null)
+            {
+                // Upstream #284/#206: the consumer references a package (e.g. System.Text.Json 11.0.0) whose
+                // assembly version is newer than the one the runtime running rtcli already loaded. One load
+                // context cannot hold two versions of the same assembly, so fall back to the runtime's copy:
+                // rtcli only reflects over the consumer's types, and the attribute types it reads exist there.
+                a = LoadedOrPlatformAssembly(context, nm.Name);
+                if (a != null) _alreadyLoaded[assemblyName.FullName] = a;
+            }
+
+            if (a == null)
+            {
+                foreach (var failure in failures) BuildWarn(ErrorMessages.RTW0014_AssemblyFailedToLoad, failure);
+            }
+
             //AssemblyLoadContext.Default.Resolving += CurrentDomainOnAssemblyResolve;
             return a;
+        }
+        private static Assembly LoadedOrPlatformAssembly(AssemblyLoadContext context, string simpleName)
+        {
+            foreach (var loaded in context.Assemblies)
+            {
+                if (string.Equals(loaded.GetName().Name, simpleName, StringComparison.OrdinalIgnoreCase)) return loaded;
+            }
+
+            var platform = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
+            if (string.IsNullOrEmpty(platform)) return null;
+            foreach (var path in platform.Split(Path.PathSeparator))
+            {
+                if (!string.Equals(Path.GetFileNameWithoutExtension(path), simpleName, StringComparison.OrdinalIgnoreCase)) continue;
+                try
+                {
+                    return context.LoadFromAssemblyName(new AssemblyName(simpleName));
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+            return null;
         }
 #else
         private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
