@@ -8,7 +8,32 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
+  <!-- Package: this project packs Reinforced.Typings.vNext; eng/Package.targets adds tools/ and build/. -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>Reinforced.Typings.vNext</PackageId>
+    <Title>Reinforced.Typings.vNext</Title>
+    <Authors>Pavel B. Novikov and contributors</Authors>
+    <Description>Reinforced.Typings is automated, reflection-based glue code generator for TypeScript. It is MSBuild-integrated and can generate MVC/WebAPI services glue code, JSDOC and architecture mockups from your assemblies.</Description>
+    <PackageTags>mvc web typescript</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/benpsnyder/Reinforced.Typings</PackageProjectUrl>
+    <PackageCopyright>© 2023 Pavel B. Novikov</PackageCopyright>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)../stuff/relnotes/$(Version).md'))</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/benpsnyder/Reinforced.Typings</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- tools/ and build/ hold executables and an MSBuild task, not lib assets. -->
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="Sign.cs" Condition="'$(RtSign)' != 'true'" />
   </ItemGroup>
+
+  <Import Project="..\eng\Package.targets" />
 </Project>

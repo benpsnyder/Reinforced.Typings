@@ -224,3 +224,6 @@ docplan.txt
 
 # e2e consumer output when built in place
 e2e/Consumer/generated/
+
+# dotnet pack output
+/artifacts/
