@@ -72,12 +72,14 @@
 		<RtDisable>false</RtDisable>
 
 		<!--
-			Forces RT to use specified target framework.
-			Use this parameter if your RT is experiencing some problems with identifying framework version to use.
-			Available values: 
-				net45, net461, netcoreapp1.0, netcoreapp1.1, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2
+			Forces RT to use the rtcli built for the specified framework.
+			By default RT picks it from your project's framework: net481, net10.0 and net11.0 use their
+			own tool, net12.0 and later use the net11.0 tool with roll-forward, netstandard2.x uses the
+			tool matching the SDK, and other frameworks fail the build.
+			Available values:
+				net481, net10.0, net11.0
 		-->
-		<!-- <RtForceTargetFramework>netcoreapp2.2</RtForceTargetFramework>	-->	
+		<!-- <RtForceTargetFramework>net10.0</RtForceTargetFramework>	-->	
 		
 		<!--
 			Warnings to suppress during export process. 

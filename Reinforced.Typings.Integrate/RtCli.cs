@@ -14,11 +14,7 @@ namespace Reinforced.Typings.Cli
     {
         internal static PropertyInfo[] _GetProperties(this Type t, BindingFlags flags)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetProperties(flags);
-#else
             return t.GetProperties(flags);
-#endif
         }
     }
 }
@@ -31,10 +27,27 @@ namespace Reinforced.Typings.Integrate
     /// </summary>
     public class RtCli : ToolTask
     {
+        private ToolChoice _choice;
+
         /// <summary>
-        /// Framework version to invoke rtcli
+        /// Consumer's $(TargetFramework)
         /// </summary>
         public string TargetFramework { get; set; }
+
+        /// <summary>
+        /// Consumer's $(TargetFrameworkIdentifier), e.g. .NETCoreApp
+        /// </summary>
+        public string TargetFrameworkIdentifier { get; set; }
+
+        /// <summary>
+        /// Consumer's $(TargetFrameworkVersion), e.g. v11.0
+        /// </summary>
+        public string TargetFrameworkVersion { get; set; }
+
+        /// <summary>
+        /// The SDK's own runtime version, $(BundledNETCoreAppTargetFrameworkVersion); used for netstandard consumers
+        /// </summary>
+        public string SdkRuntimeVersion { get; set; }
 
         /// <summary>
         /// Forced usage of target framework
@@ -94,7 +107,7 @@ namespace Reinforced.Typings.Integrate
         /// Full-qualified name of fluent configuration method
         /// </summary>
         public string ConfigurationMethod { get; set; }
-        
+
         /// <summary>
         /// Semicolon-separated list of warnings to be suppressed
         /// </summary>
@@ -106,89 +119,76 @@ namespace Reinforced.Typings.Integrate
             get; set;
         }
 
+        private ToolChoice Choice
+        {
+            get
+            {
+                if (_choice == null)
+                {
+                    _choice = ToolSelection.Select(TargetFramework, TargetFrameworkIdentifier, TargetFrameworkVersion,
+                        SdkRuntimeVersion, RtForceTargetFramework);
+                }
+                return _choice;
+            }
+        }
+
+        private static bool IsWindows
+        {
+            get { return RuntimeInformation.IsOSPlatform(OSPlatform.Windows); }
+        }
+
+        protected override bool ValidateParameters()
+        {
+            var choice = Choice;
+            if (choice.Error != null)
+            {
+                Log.LogError(null, "RTI0001", null, null, 0, 0, 0, 0, choice.Error);
+                return false;
+            }
+
+            if (choice.IsNetFramework && !IsWindows)
+            {
+                Log.LogError(null, "RTI0002", null, null, 0, 0, 0, 0,
+                    "Reinforced.Typings.vNext runs tools/net481/rtcli.exe for .NET Framework projects, which needs Windows. " +
+                    "To generate on this OS, set RtForceTargetFramework to net10.0 or net11.0.");
+                return false;
+            }
+
+            var toolDir = GetProperRtcliPath();
+            var toolFile = Path.Combine(toolDir, choice.IsNetFramework ? "rtcli.exe" : "rtcli.dll");
+            if (!File.Exists(toolFile))
+            {
+                Log.LogError(null, "RTI0003", null, null, 0, 0, 0, 0,
+                    "Reinforced.Typings.vNext: rtcli was not found at '{0}'. The package may be damaged; restore it again.", toolFile);
+                return false;
+            }
+
+            return base.ValidateParameters();
+        }
+
         protected override string GenerateFullPathToTool()
         {
-            if (IsCore)
-            {
-#if NETCORE
-                return
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                    "dotnet.exe"
-                    : "dotnet";
-#else
-                return "dotnet.exe"; 
-#endif
-            }
-            return Path.Combine(GetProperRtcliPath(), ToolName);
+            if (Choice.IsNetFramework) return Path.Combine(GetProperRtcliPath(), ToolName);
+
+            // Run the tool with the same dotnet host as the build when the SDK tells us which one that is.
+            var hostPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
+            if (!string.IsNullOrEmpty(hostPath) && File.Exists(hostPath)) return hostPath;
+            return ToolName;
         }
 
         private string GetProperRtcliPath()
         {
             var bd = new DirectoryInfo(BuildDirectory);
             var toolsPath = Path.Combine(bd.Parent.FullName, "tools");
-            var fwPath = Path.Combine(toolsPath, NormalizeFramework());
-            return fwPath;
+            return Path.Combine(toolsPath, Choice.Folder);
         }
-
-        private string NormalizeFramework()
-        {
-            if (!string.IsNullOrEmpty(RtForceTargetFramework)) return RtForceTargetFramework;
-            if (string.IsNullOrEmpty(TargetFramework))
-#if NETCORE
-                return "netcoreapp2.0";
-#else
-                return "net45";
-#endif
-
-            if (TargetFramework.StartsWith("netstandard"))
-            {
-                var version = int.Parse(TargetFramework.Substring("netstandard".Length)[0].ToString());
-                if (version == 1) return "netcoreapp1.0";
-                return "netcoreapp2.0";
-            }
-            if (TargetFramework.StartsWith("netcoreapp")) return TargetFramework;
-
-            if (TargetFramework.StartsWith("net46")) return "net461";
-            if (TargetFramework.StartsWith("net47")) return "net461";
-            if (TargetFramework.StartsWith("net48")) return "net461";
-            return TargetFramework;
-        }
-
-        private bool IsCore
-        {
-            get
-            {
-                var fw = NormalizeFramework();
-                if (string.IsNullOrEmpty(fw)) return false;
-                if (fw.StartsWith("netstandard")) return true;
-                if (fw.StartsWith("netcoreapp")) return true;
-                if (fw.StartsWith("net5")) return true;
-                if (fw.StartsWith("net6")) return true;
-                if (fw.StartsWith("net7")) return true;
-                if (fw.StartsWith("net8")) return true;
-                if (fw.StartsWith("net9")) return true;
-                if (fw.StartsWith("net10")) return true;
-                return false;
-            }
-        }
-
 
         protected override string ToolName
         {
             get
             {
-                if (IsCore)
-                {
-#if NETCORE
-                    return
-                        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                            "dotnet.exe"
-                            : "dotnet";
-#else
-                return "dotnet.exe";
-#endif
-                }
-                return "rtcli.exe";
+                if (Choice.IsNetFramework) return "rtcli.exe";
+                return IsWindows ? "dotnet.exe" : "dotnet";
             }
         }
 
@@ -202,13 +202,9 @@ namespace Reinforced.Typings.Integrate
                 ReferencesTmpFilePath = string.Empty,
                 SourceAssemblies = ExtractSourceAssemblies(),
                 SuppressedWarnings = SuppressedWarnings,
-                DocumentationFilePath = DocumentationFilePath.EndsWith(".xml",
-#if NETCORE
-                StringComparison.CurrentCultureIgnoreCase
-#else
-                StringComparison.InvariantCultureIgnoreCase
-#endif
-                ) ? DocumentationFilePath : String.Empty,
+                DocumentationFilePath = DocumentationFilePath.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)
+                    ? DocumentationFilePath
+                    : String.Empty,
                 ConfigurationMethod = ConfigurationMethod
             };
 
@@ -222,13 +218,15 @@ namespace Reinforced.Typings.Integrate
                     tw.Flush();
                 }
             }
-            if (IsCore)
-            {
-                var pth = Path.Combine(GetProperRtcliPath(), "rtcli.dll");
-                return string.Format("\"{1}\" profile \"{0}\"", tmpFile, pth);
-            }
-            return string.Format("profile \"{0}\"", tmpFile);
 
+            if (Choice.IsNetFramework)
+            {
+                return string.Format("profile \"{0}\"", tmpFile);
+            }
+
+            var pth = Path.Combine(GetProperRtcliPath(), "rtcli.dll");
+            var rollForward = Choice.RollForward ? "--roll-forward Major " : string.Empty;
+            return string.Format("{2}\"{1}\" profile \"{0}\"", tmpFile, pth, rollForward);
         }
 
         private string FixTargetPath(string path)

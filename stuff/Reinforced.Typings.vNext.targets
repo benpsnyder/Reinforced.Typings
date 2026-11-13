@@ -6,7 +6,8 @@
 
     <PropertyGroup>
 		<RtTargetsPath Condition=" '$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</RtTargetsPath>
-		<RtTargetsPath Condition=" '$(MSBuildRuntimeType)' != 'Core'">net46</RtTargetsPath>
+		<!-- Visual Studio / MSBuild.exe runs on .NET Framework and loads the net472 build of the task. -->
+		<RtTargetsPath Condition=" '$(MSBuildRuntimeType)' != 'Core'">net472</RtTargetsPath>
 	</PropertyGroup>
     
 	<PropertyGroup Condition="Exists($(RtSettingsXml))" >
@@ -49,6 +50,9 @@
 		<RtCli 
             BuildDirectory="$(MSBuildThisFileDirectory)"
 			TargetFramework="$(TargetFramework)"
+			TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
+			TargetFrameworkVersion="$(TargetFrameworkVersion)"
+			SdkRuntimeVersion="$(BundledNETCoreAppTargetFrameworkVersion)"
 			RtForceTargetFramework="$(RtForceTargetFramework)"
 			SourceAssembly="@(IntermediateAssembly)"
 			References="@(ReferencePath)"
