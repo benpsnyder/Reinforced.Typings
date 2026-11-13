@@ -88,6 +88,34 @@
 			Hm... seems that I know what to put here by default...
 		-->
 		<RtSuppress>RTW0013;RTW0014</RtSuppress>
+
+		<!--
+			Check mode (3.1.0). When 'true', typings are generated in memory and compared with the
+			files on disk; nothing is written, and any difference fails the build with error RT0019.
+			Meant for CI drift gates, usually set on the command line: dotnet build -p:RtCheckMode=true
+		-->
+		<RtCheckMode>false</RtCheckMode>
+
+		<!--
+			Effect Schema emitter (3.1.0). When set, an Effect 4 Schema module (import { Schema } from "effect")
+			for the exported DTOs is written to this file alongside the TypeScript output.
+			Empty (default): no Effect Schema module.
+		-->
+		<!-- <RtEffectSchemaFile>$(ProjectDir)Scripts\project.schema.ts</RtEffectSchemaFile> -->
+
+		<!--
+			Skip unchanged generations (3.1.0). When 'true', rtcli is not started if the source assemblies,
+			XML docs, references, settings, tool and current generated output are unchanged since the last
+			successful generation (key stored in obj/). RtForce='true' regenerates anyway.
+		-->
+		<RtSkipUnchanged>false</RtSkipUnchanged>
+		<RtForce>false</RtForce>
+
+		<!--
+			Generation options added in 3.1.0 are set in fluent configuration (builder.Global(g => g...))
+			or [assembly: TsGlobal(...)], all off by default: UseSystemTextJson, JsonNamingPolicy,
+			UseTypeImports, EnumsAsUnionTypes, ReadonlyProperties, StrictNullability. See README.md.
+		-->
 	</PropertyGroup>
 	
 	<!--

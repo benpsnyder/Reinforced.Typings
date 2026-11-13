@@ -45,7 +45,7 @@ jobs:
         run: dotnet pack Reinforced.Typings/Reinforced.Typings.csproj -c Release -o artifacts
 
       - name: End-to-end (net10.0, net11.0)
-        run: dotnet run e2e/run.cs -- --feed artifacts --version 3.0.0 --frameworks net10.0,net11.0 --bypass-run --work ${{ runner.temp }}/rt-e2e
+        run: dotnet run e2e/run.cs -- --feed artifacts --version 3.1.0 --frameworks net10.0,net11.0 --bypass-run --modern-run --check-run --work ${{ runner.temp }}/rt-e2e
 
       - name: Upload package
         uses: actions/upload-artifact@v4
@@ -92,5 +92,5 @@ jobs:
           $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
           if (-not $msbuild) { throw 'MSBuild.exe not found' }
           Write-Host "Using $msbuild"
-          dotnet run e2e/run.cs -- --feed artifacts --version 3.0.0 --frameworks net481,net10.0,net11.0 --msbuild "$msbuild" --work "${{ runner.temp }}\rt-e2e"
+          dotnet run e2e/run.cs -- --feed artifacts --version 3.1.0 --frameworks net481,net10.0,net11.0 --modern-run --msbuild "$msbuild" --work "${{ runner.temp }}\rt-e2e"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
