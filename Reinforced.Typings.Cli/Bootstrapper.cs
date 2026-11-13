@@ -41,9 +41,20 @@ namespace Reinforced.Typings.Cli
             {
                 if (string.Compare(args[0], "profile", StringComparison.OrdinalIgnoreCase) == 0)
                 {
+                    // Upstream #226: "rtcli profile" without a path threw IndexOutOfRangeException.
+                    if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+                    {
+                        Console.WriteLine("Usage: rtcli profile <path to profile file>");
+                        Console.WriteLine("   or: rtcli Parameter=\"value\" ... (see below)");
+                        Console.WriteLine();
+                        PrintHelp();
+                        Environment.ExitCode = 1;
+                        return;
+                    }
                     if (!File.Exists(args[1]))
                     {
                         Console.WriteLine("Cannot find profile {0}, exiting", args[1]);
+                        Environment.ExitCode = 1;
                         return;
                     }
                     parameters = ExtractParametersFromFile(args[1]);
