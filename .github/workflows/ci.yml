@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [master, fork, 'feat/**']
+  pull_request:
+    branches: [master, fork]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+
+jobs:
+  linux:
+    name: Linux (net10.0, net11.0)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 10 and 11
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+            11.0.x
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build Reinforced.Typings.slnx -c Release
+
+      - name: Unit tests (net10.0)
+        run: dotnet test --project Reinforced.Typings.Tests/Reinforced.Typings.Tests.csproj -c Release -f net10.0 --no-build
+
+      - name: Unit tests (net11.0)
+        run: dotnet test --project Reinforced.Typings.Tests/Reinforced.Typings.Tests.csproj -c Release -f net11.0 --no-build
+
+      - name: Pack
+        run: dotnet pack Reinforced.Typings/Reinforced.Typings.csproj -c Release -o artifacts
+
+      - name: End-to-end (net10.0, net11.0)
+        run: dotnet run e2e/run.cs -- --feed artifacts --version 3.0.0 --frameworks net10.0,net11.0 --bypass-run --work ${{ runner.temp }}/rt-e2e
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: artifacts/
+
+  windows:
+    name: Windows (net481, net10.0, net11.0)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 10 and 11
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+            11.0.x
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build Reinforced.Typings.slnx -c Release
+
+      - name: Unit tests (net481)
+        run: dotnet test --project Reinforced.Typings.Tests/Reinforced.Typings.Tests.csproj -c Release -f net481 --no-build
+
+      - name: Unit tests (net10.0)
+        run: dotnet test --project Reinforced.Typings.Tests/Reinforced.Typings.Tests.csproj -c Release -f net10.0 --no-build
+
+      - name: Unit tests (net11.0)
+        run: dotnet test --project Reinforced.Typings.Tests/Reinforced.Typings.Tests.csproj -c Release -f net11.0 --no-build
+
+      - name: Pack
+        run: dotnet pack Reinforced.Typings/Reinforced.Typings.csproj -c Release -o artifacts
+
+      - name: End-to-end (dotnet build for net481, net10.0, net11.0; MSBuild.exe for net481)
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          if (-not $msbuild) { throw 'MSBuild.exe not found' }
+          Write-Host "Using $msbuild"
+          dotnet run e2e/run.cs -- --feed artifacts --version 3.0.0 --frameworks net481,net10.0,net11.0 --msbuild "$msbuild" --work "${{ runner.temp }}\rt-e2e"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

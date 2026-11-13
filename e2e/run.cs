@@ -59,6 +59,9 @@ foreach (var run in runs)
     }
     else
     {
+        // Visual Studio's MSBuild may predate the newest SDK; any 10.0.x SDK can build the
+        // net481 consumer, and the point of this run is MSBuildRuntimeType=Full.
+        File.WriteAllText(Path.Combine(dir, "global.json"), """{ "sdk": { "version": "10.0.100", "rollForward": "latestFeature" } }""");
         psi = new ProcessStartInfo(run.MsBuild) { ArgumentList = { Path.Combine(dir, "Consumer.csproj"), "-restore" } };
     }
     foreach (var a in common.Concat(run.Extra)) psi.ArgumentList.Add(a);
