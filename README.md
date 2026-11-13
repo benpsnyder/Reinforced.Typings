@@ -45,13 +45,6 @@ Simply replace your NuGet package reference:
 
 No code changes required - all namespaces remain `Reinforced.Typings.*`.
 
-Support policy
-=================
-
-Please **do not** ask your questions in github issues anymore. Such format is not suitable for storing FAQ. If you have question - please go to StackOverflow and ask it there. Tag your question with [reinforced-typings](https://stackoverflow.com/questions/tagged/reinforced-typings) tag. I watch full list of questions and will answer ASAP. Make experience that you've got available for other users! 
-
-GitHub issues are for confirmed bugs/feature requests now. If you've found bug - please write and PR test if you can. If you have feature idea - please describe it from fluent/attribute configuration point of view. Describe how'd you gonna to configure RT for desired result. Thanks in advance!
-
 Best to be used for
 =================
 
