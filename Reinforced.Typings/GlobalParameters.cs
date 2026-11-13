@@ -253,6 +253,19 @@ namespace Reinforced.Typings
         }
 
         /// <summary>
+        /// Emit "namespace X {" instead of the legacy "module X {" (TypeScript 6 and 7 reject the latter with TS1540). Default false.
+        /// </summary>
+        public bool UseNamespaceKeyword
+        {
+            get { return _attr.UseNamespaceKeyword; }
+            set
+            {
+                if (_isLocked) return;
+                _attr.UseNamespaceKeyword = value;
+            }
+        }
+
+        /// <summary>
         /// Gets or sets whether RT must automatically treat methods returning Task as async methods
         /// </summary>
         public bool AutoAsync

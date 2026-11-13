@@ -207,6 +207,18 @@ namespace Reinforced.Typings.Fluent
         }
 
         /// <summary>
+        /// Emits "namespace X {" instead of the legacy "module X {" for namespace output.
+        /// TypeScript 6 and 7 reject "module X {}" with error TS1540.
+        /// </summary>
+        /// <param name="builder">Conf builder</param>
+        /// <param name="value">True to use the namespace keyword</param>
+        public static GlobalConfigurationBuilder UseNamespaceKeyword(this GlobalConfigurationBuilder builder, bool value = true)
+        {
+            builder.Parameters.UseNamespaceKeyword = value;
+            return builder;
+        }
+
+        /// <summary>
         ///     Makes RT automatically to turn methods returning Task into async ones
         /// </summary>
         /// <param name="builder">Conf builder</param>

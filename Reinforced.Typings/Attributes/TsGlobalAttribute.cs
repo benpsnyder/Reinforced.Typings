@@ -124,6 +124,11 @@ namespace Reinforced.Typings.Attributes
         public bool AutoAsync { get; set; }
 
         /// <summary>
+        /// Emit "namespace X {" instead of the legacy "module X {" for non-module (namespace) output. TypeScript 6 and 7 reject "module X {}" with error TS1540. Default false (output unchanged).
+        /// </summary>
+        public bool UseNamespaceKeyword { get; set; }
+
+        /// <summary>
         /// Honour System.Text.Json attributes (JsonPropertyName, JsonIgnore, JsonPropertyOrder, JsonStringEnumConverter, JsonStringEnumMemberName, JsonPolymorphic/JsonDerivedType). Attributes are detected by full name, so no System.Text.Json reference is needed. Default false.
         /// </summary>
         public bool UseSystemTextJson { get; set; }
