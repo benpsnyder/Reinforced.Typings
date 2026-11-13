@@ -1,0 +1,149 @@
+name: Release
+
+# Publishes Reinforced.Typings.vNext to nuget.org through NuGet trusted publishing.
+# The nuget.org policy names this file (build.yml), so do not rename it.
+# Run it manually from master: Actions -> Release -> Run workflow.
+#
+# Required repository secret:
+#   RT_SIGNING_KEY_BASE64  base64 of the strong-name key pair (Reinforced.snk)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  pack:
+    name: Build, test and pack (signed)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 10 and 11
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+            11.0.x
+          global-json-file: global.json
+
+      - name: Read version
+        id: version
+        run: |
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)
+          if [ -z "$version" ]; then echo "No <Version> in Directory.Build.props" >&2; exit 1; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Releasing $version"
+
+      - name: Restore signing key
+        env:
+          RT_SIGNING_KEY_BASE64: ${{ secrets.RT_SIGNING_KEY_BASE64 }}
+        run: |
+          if [ -z "$RT_SIGNING_KEY_BASE64" ]; then echo "Secret RT_SIGNING_KEY_BASE64 is not set; refusing to publish unsigned assemblies." >&2; exit 1; fi
+          for dir in Reinforced.Typings Reinforced.Typings.Cli Reinforced.Typings.Integrate; do
+            printf '%s' "$RT_SIGNING_KEY_BASE64" | base64 -d > "$dir/Reinforced.snk"
+            test -s "$dir/Reinforced.snk"
+          done
+
+      - name: Build
+        run: dotnet build Reinforced.Typings.slnx -c Release
+
+      - name: Unit tests (net10.0)
+        run: dotnet test --project Reinforced.Typings.Tests/Reinforced.Typings.Tests.csproj -c Release -f net10.0 --no-build
+
+      - name: Unit tests (net11.0)
+        run: dotnet test --project Reinforced.Typings.Tests/Reinforced.Typings.Tests.csproj -c Release -f net11.0 --no-build
+
+      - name: Pack
+        run: dotnet pack Reinforced.Typings/Reinforced.Typings.csproj -c Release -o artifacts
+
+      - name: Remove signing key from the workspace
+        if: always()
+        run: rm -f Reinforced.Typings/Reinforced.snk Reinforced.Typings.Cli/Reinforced.snk Reinforced.Typings.Integrate/Reinforced.snk
+
+      - name: End-to-end (net10.0, net11.0)
+        run: dotnet run e2e/run.cs -- --feed artifacts --version ${{ steps.version.outputs.version }} --frameworks net10.0,net11.0 --bypass-run --work ${{ runner.temp }}/rt-e2e
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-package
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+          if-no-files-found: error
+
+  verify-windows:
+    name: Verify the packed package on Windows (net481, net10.0, net11.0)
+    needs: pack
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 and 11
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+            11.0.x
+          global-json-file: global.json
+
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: release-package
+          path: artifacts
+
+      - name: End-to-end against the exact package being released
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          if (-not $msbuild) { throw 'MSBuild.exe not found' }
+          Write-Host "Using $msbuild"
+          dotnet run e2e/run.cs -- --feed artifacts --version ${{ needs.pack.outputs.version }} --frameworks net481,net10.0,net11.0 --msbuild "$msbuild" --work "${{ runner.temp }}\rt-e2e"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+  publish:
+    name: Publish to nuget.org
+    needs: [pack, verify-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: release-package
+          path: artifacts
+
+      - name: NuGet login (trusted publishing)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: benpsnyder
+
+      - name: Push
+        run: dotnet nuget push "artifacts/Reinforced.Typings.vNext.${{ needs.pack.outputs.version }}.nupkg" --source https://api.nuget.org/v3/index.json --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
