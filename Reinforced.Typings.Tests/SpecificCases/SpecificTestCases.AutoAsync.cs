@@ -48,13 +48,13 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void AutoAsyncWorks()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export class TestAsync
 	{
 		public async DoVoid() : Promise<void> { } 
 		public async DoArgument() : Promise<string>
 		{
-			return null;
+			return null!;
 		}
 	}
 	export interface ITestAsync2
@@ -75,7 +75,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void AutoAsyncInterfaceWorks()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface ITestAsync
 	{
 		DoVoid() : Promise<void>;
@@ -93,7 +93,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void NoAutoAsyncInterfaceWorks()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface ITestAsync
 	{
 		DoVoid() : void;
@@ -110,7 +110,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void PromiseTaskInParamterIsMaintained()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface ITestAsyncParameter
 	{
 		EvaluatePromise(taskParameter: Promise<string>) : string;

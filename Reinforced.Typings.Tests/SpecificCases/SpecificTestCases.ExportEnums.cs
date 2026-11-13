@@ -30,7 +30,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void ExportEnums()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export enum TestEnum1 { 
 		A = 0, 
 		B = 1, 

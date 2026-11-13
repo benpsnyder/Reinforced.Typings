@@ -13,7 +13,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void HierarchyFlattening4()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IFlattenChild1
 	{
 		Name_For_1: number;

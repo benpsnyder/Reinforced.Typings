@@ -52,7 +52,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void DDanteInheritanceBug()
         {
             const string result = @"
-module Pollux.Models {
+namespace Pollux.Models {
 	export interface IPolluxEntity<Key>
 	{
 		CreatedOn: any;

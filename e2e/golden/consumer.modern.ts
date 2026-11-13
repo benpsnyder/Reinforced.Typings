@@ -2,7 +2,7 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
-module E2E.Consumer.Models {
+namespace E2E.Consumer.Models {
 	/** Lifecycle state of an order. */
 	export type OrderStatus = 0 | 1 | 5 | 10;
 	/** A customer order. */
@@ -48,7 +48,7 @@ module E2E.Consumer.Models {
 		*/
 		public load(id: string) : E2E.Consumer.Models.IOrder
 		{
-			return null;
+			return null!;
 		}
 		/**
 		* Lists orders.
@@ -58,7 +58,7 @@ module E2E.Consumer.Models {
 		*/
 		public list(page: number, status?: E2E.Consumer.Models.OrderStatus) : E2E.Consumer.Models.IPage<E2E.Consumer.Models.IOrder>
 		{
-			return null;
+			return null!;
 		}
 		/**
 		* Cancels an order.
@@ -96,7 +96,7 @@ module E2E.Consumer.Models {
 	}
 	export type Currency = "Usd" | "Eur" | "Jpy";
 }
-module E2E.Consumer.Modern {
+namespace E2E.Consumer.Modern {
 	/** How the customer prefers to buy. */
 	export type Channel = "Web" | "in-store";
 	/** A payment; serialized polymorphically. */

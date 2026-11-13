@@ -48,7 +48,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
 	        // order the tokens in the same order as the CLR on Windows (ie it's CLR-specific, relying on a certain order)
 	        // (Similar to the way that the order of attributes in C# code is CLR-dependent and shouldn't be relied on)
             const string result = @"
-module Test {
+namespace Test {
 	export enum ExportedEnum { 
 		One = 1
 	}

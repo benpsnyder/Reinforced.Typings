@@ -40,7 +40,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void HierarchyFlattening3()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IViewModel
 	{
 		Name: string;

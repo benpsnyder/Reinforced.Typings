@@ -116,6 +116,8 @@ namespace Reinforced.Typings.Attributes
             WriteWarningComment = true;
             TabSymbol = "\t";
             NewLine = Environment.NewLine;
+            // 3.1.0: TypeScript 6 and 7 reject "module X {}" (TS1540), so "namespace" is the default.
+            UseNamespaceKeyword = true;
         }
 
         /// <summary>
@@ -130,7 +132,7 @@ namespace Reinforced.Typings.Attributes
         public bool AutoAsync { get; set; }
 
         /// <summary>
-        /// Emit "namespace X {" instead of the legacy "module X {" for non-module (namespace) output. TypeScript 6 and 7 reject "module X {}" with error TS1540. Default false (output unchanged).
+        /// Emit "namespace X {" instead of the legacy "module X {" for non-module (namespace) output. TypeScript 6 and 7 reject "module X {}" with error TS1540. Default true since 3.1.0; set false for the legacy "module" keyword.
         /// </summary>
         public bool UseNamespaceKeyword { get; set; }
 

@@ -17,7 +17,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void DtsNoDeclareEnumWithoutAmbientScope()
         {
             const string result = @"
-declare module Enum.Test {
+declare namespace Enum.Test {
 	export const enum Version { 
 		Current = 1
 	}

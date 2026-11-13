@@ -36,7 +36,7 @@ export class SomeReferencingType
 {
 	public Indirect() : Stuff.SomeIndirectlyReferencedClass
 	{
-		return null;
+		return null!;
 	}
 }";
             const string file2 = @"

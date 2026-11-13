@@ -16,7 +16,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
 		public void EnumMultipleIgnoreValuesShouldPass()
 		{
 			const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export enum EnumToIgnoreSomeValues { 
         Value3 = ""Value3"" 
     }

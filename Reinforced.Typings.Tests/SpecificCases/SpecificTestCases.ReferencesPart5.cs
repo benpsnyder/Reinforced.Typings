@@ -35,7 +35,7 @@ export namespace Reinforced.Typings.Tests.SpecificCases {
 		public Enum?: Stuff.SomeIndirectEnum;
 		public Indirect() : Stuff.Reinforced.Typings.Tests.SpecificCases.SomeIndirectlyReferencedClass
 		{
-			return null;
+			return null!;
 		}
 	}
 }";

@@ -11,7 +11,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void FunctionalNames()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface ITestInterface
 	{
 		WoohooInt: number;

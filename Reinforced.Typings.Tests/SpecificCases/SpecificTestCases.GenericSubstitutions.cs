@@ -51,7 +51,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void GenericSubstitutions()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IAsyncA
 	{
 		Do() : angular.Promise<string>;

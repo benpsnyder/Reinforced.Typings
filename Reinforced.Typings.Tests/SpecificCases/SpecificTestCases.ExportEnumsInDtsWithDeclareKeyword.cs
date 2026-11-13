@@ -9,7 +9,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void ExportEnumsInDtsWithDeclareKeyword()
         {
             const string result = @"
-declare module Reinforced.Typings.Tests.SpecificCases {
+declare namespace Reinforced.Typings.Tests.SpecificCases {
 	export enum TestEnum1 { 
 		A = 0, 
 		B = 1, 

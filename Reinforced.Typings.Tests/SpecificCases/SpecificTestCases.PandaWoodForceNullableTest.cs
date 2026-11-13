@@ -20,7 +20,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void PandaWoodForceNullableTest()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export class PandaWoodForceNullableCase
 	{
 		public PandaWoodProperty?: string;		

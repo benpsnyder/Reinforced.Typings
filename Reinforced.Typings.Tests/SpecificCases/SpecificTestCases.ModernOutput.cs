@@ -24,7 +24,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void ReadonlyProperties()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IModernDto
 	{
 		readonly name: string;
@@ -43,7 +43,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void StrictNullabilitySeparatesNullFromOptional()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IModernDto
 	{
 		name: string;
