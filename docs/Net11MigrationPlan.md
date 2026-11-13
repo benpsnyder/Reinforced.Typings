@@ -159,7 +159,36 @@ So no unmerged feature work exists outside `fork`. The question is which parts o
 
 7. **A file with a Windows drive letter in its path is committed** (`d403e53`): `Reinforced.Typings.Tests/w:/Work/Reinforced/Typings/Reinforced.Typings/Reinforced.Typings.Tests/Reinforced.Typings.Tests.Dev.xml`. It is a stray XML-doc output. A path containing `:` cannot be checked out on Windows, which matters because 3.0.0 needs a Windows CI job. Delete it and the sibling `Reinforced.Typings.Tests.Dev.xml` in Phase 0, and ignore `*.Dev.xml`.
 
-## 6. Execution record
+## 6. Deferred to 3.1.0
+
+None of the following is in 3.0.0.
+
+### Performance
+
+1. Compare content and do not rewrite generated files that have not changed.
+2. Skip generation entirely when the assembly identity and settings are unchanged.
+3. A reusable generator server process shared across projects, only if measurement on a large solution justifies it.
+4. Longer term, a Roslyn incremental generator for attribute-driven configuration.
+
+### Features
+
+1. A check mode that fails the build when committed output differs.
+2. Honour System.Text.Json attributes: `JsonPropertyName`, `JsonIgnore`, naming policy, string enums, `JsonDerivedType` as discriminated unions.
+3. An Effect Schema emitter alongside the types.
+4. Modern TypeScript output options: `import type`, string-literal unions, `readonly`, optional versus nullable.
+5. A standalone `dotnet tool` with watch mode.
+
+### Phase 3 items dropped from 3.0.0
+
+| Item | Why it is not in 3.0.0 |
+| --- | --- |
+| 1. Replace `XmlSerializer` in `DocumentationManager` | Implemented and dropped. A differential check against `XmlSerializer` on 50 real XML doc files from the NuGet cache (sequential, 2-minute budget) found 25 identical, 2 different and 23 where `XmlSerializer` itself did not finish within 5 s. The differences come from `XmlSerializer` keeping the **last** of several `<remarks>` (Azure.Security.KeyVault.Secrets 4.11.1, member ``M:Azure.Core.ArrayBufferWriter`1.GetMemory``), while unit tests showed it keeping the **first** of two `<summary>` elements; the replacement's rules therefore did not match `XmlSerializer` and output could not be guaranteed byte-identical. The `XmlSerializer` stalls deserve their own investigation: on `HealthChecks.Rabbitmq.xml` the stall was isolated to a member whose only element is `<inheritdoc />`, yet a consumer with exactly that doc shape generated normally with 2.0.3, so the trigger is not established. |
+| 3. Dedicated `AssemblyLoadContext` with `AssemblyDependencyResolver` | Not implemented. The task passes the `obj/` intermediate assembly, which has no `.deps.json` beside it, and the `bin/` one is written after compilation (missing on a clean build), so the resolver would fall back to the reference list the current handler already uses, while adding type-identity risk for the shared `Reinforced.Typings` attributes and fluent builder. |
+| 4. `NullabilityInfoContext` on .NET | Not kept. A comparison of the existing `NullableAttribute` reader with `NullabilityInfoContext` over 1,871 reference-typed properties and parameters (test assembly, e2e consumer, Reinforced.Typings) found no difference, so it is safe to adopt later, but nullability lookups are far below the measurement noise of a ~120 ms tool run and it would add a framework split for no measured gain. |
+| 5. Runtime configuration for a short-lived process | Measured and not kept. Non-concurrent GC plus `TieredPGO=false` on the net10.0/net11.0 tools: medians 119 → 118 ms and 123 → 123 ms (40 runs each), i.e. no effect. Invariant globalization was not tried: consumers' fluent configuration and generator code runs inside the tool, so it is a behaviour change, not a tuning. |
+| 6. .NET 11-only APIs and C# 15 features in hot paths | Not done. The plan makes this item conditional on a profile of the 54-project build, which cannot run against an unpublished package; no .NET 11-only API was introduced. |
+
+## 7. Execution record
 
 ### Phase 0 baseline (2026-11-12)
 
@@ -168,3 +197,33 @@ So no unmerged feature work exists outside `fork`. The question is which parts o
 - 2.0.3 against the same consumer: `net10.0` passes; `net11.0` fails with MSB6004 on `tools/net11.0/rtcli.exe` (defect 3 reproduced); `net481` fails with MSB6004 on `tools/net461/rtcli.exe` (defect 2 reproduced). Defect 1 needs Visual Studio's MSBuild and is covered by the Windows CI job.
 - **Defect 8, found while capturing goldens:** `RtBypassTypeScriptCompilation=true` fails every SDK-style build with MSB4044, because `$(PublishPipelineCollectFilesCore)` is empty there and `RemoveTypeScriptStep.Original` is `[Required]`.
 - Timing baseline. The 54-project snyder-apps build cannot run against an unpublished package, so timing is measured on the e2e consumer: `dotnet run e2e/measure.cs` launches `dotnet rtcli.dll profile <file>` the way the task does. 2.0.3 `tools/net10.0` on runtime 10.0.15, Apple M2 Ultra, macOS 27.2: 30 runs after 3 warm-ups, min 111 ms, **median 127 ms**, mean 130 ms, max 153 ms; output identical to golden on every run.
+
+### Phase 1: tests
+
+- One SDK-style project per assembly (moved ahead of Phase 2, because the tests cannot multi-target against single-target libraries). Tests run on xunit.v3 4.0.3 through Microsoft.Testing.Platform for net481, net10.0 and net11.0.
+- The tests had not run since the netcoreapp2.x era. Seven documentation tests failed only because the test assembly no longer produced its XML doc file; with that restored, 98 of 98 passed on net10.0 and net11.0.
+- `dotnet pack` was also moved ahead (from Phase 4), because the e2e test needs a package built from the branch. Against that package the e2e still failed for net11.0 and net481 with the defect 3 and defect 2 paths, and passed for net10.0: the Phase 1 check.
+- CI (`.github/workflows/ci.yml`): Linux runs net10.0/net11.0 tests, pack and e2e; Windows runs net481/net10.0/net11.0 tests and e2e, including net481 through Visual Studio's MSBuild.exe. No step swallows failures.
+
+### Phase 2: matrix and defects
+
+- Tool selection rule implemented in `Reinforced.Typings.Integrate/ToolSelection.cs`, with 28 unit tests. Defects 1, 2, 3 and 8 fixed. The e2e on macOS is byte-identical to golden for net10.0, net11.0 and the `RtBypassTypeScriptCompilation=true` run; net481 stops with the new RTI0002 error (rtcli.exe needs Windows), and with `RtForceTargetFramework=net10.0` it is also identical. net481 runtime behaviour is verified only by the Windows CI job.
+- All `NETCORE`, `NETCOREAPP1_0` and `NETSTANDARD1_x` shims removed; one `NETFRAMEWORK` split remains in `AssemblyManager`.
+- Defect 6: the 2.0.3 package has no dependencies (nuspec, every `deps.json`, and its node in a real snyder-apps `project.assets.json`). A minimal restore reproducing snyder-apps' pre-workaround pins (CPM with transitive pinning, Roslyn 5.0.0 pins, WolverineFx 5.9.1, EF Core Design 10.0.1) resolves an identical graph with and without Reinforced.Typings.vNext 2.0.3. The `Microsoft.CodeAnalysis.Scripting` chain comes from WolverineFx/Marten through `JasperFx.RuntimeCompiler`, which depends on `Microsoft.CodeAnalysis.Scripting [4.14.0, 6.0.0)`. The original restore error was not reproduced, so whether snyder-apps still needs the two references depends on JasperFx, not on this package. The fork's own seven Roslyn `PackageVersion` pins referenced nothing and are removed.
+
+### Phase 3: optimisations
+
+Measured with `e2e/measure.cs` (40 runs after 3 warm-ups per tool, back to back; noise is about ±10 ms). Item 2 is kept; the others are in section 6.
+
+| Variant | net10.0 median | net11.0 median |
+| --- | --- | --- |
+| 2.0.3 (same session as Phase 2 run) | 136 ms | n/a (2.0.3 cannot run a net11.0 consumer) |
+| End of Phase 2 | 128 ms / 123 ms (two sessions) | 135 ms / 125 ms |
+| Item 2: `Microsoft.NET.Sdk` + `FrameworkReference` (kept) | 118 ms / 119 ms | 126 ms / 123 ms |
+| Item 5: non-concurrent GC, `TieredPGO=false` (not kept) | 118 ms | 123 ms |
+
+`rtcli` with no arguments (runtime start-up only) takes about 50 ms; the rest is loading and reflecting over the consumer.
+
+### Phase 4: package
+
+`dotnet pack Reinforced.Typings/Reinforced.Typings.csproj -c Release -o artifacts` produces `Reinforced.Typings.vNext.3.0.0.nupkg` and `.snupkg`: `lib/` and `tools/` for net481, net10.0 and net11.0, the task in `build/net472` and `build/netstandard2.0`, empty dependency groups for the three frameworks, no `frameworkAssemblies`, repository URL and commit, README, deterministic build. Cake, `nuget.exe`, the nuspecs and the Docker scaffolding are removed. The e2e consumer builds with `-warnaserror` against it on net10.0 and net11.0 (macOS) with no extra references; net481 is checked by the Windows CI job. Nothing is published.

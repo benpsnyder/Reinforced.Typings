@@ -27,12 +27,12 @@ dotnet add package Reinforced.Typings.vNext
 
 News
 =================
-> Version **2.0.2** released
+> Version **3.0.0**
 
-- Fork published as `Reinforced.Typings.vNext`
-- .NET 5.0, 6.0, 7.0, 8.0, 9.0, and 10.0 support
-- .NET Framework 4.8.1 support via Mono
-- Updated Cake build tooling
+- Supports projects targeting .NET 11, .NET 10 and .NET Framework 4.8.1 (`net11.0`, `net10.0`, `net481`). `net12.0` and later run the `net11.0` tool with major-version roll-forward; `netstandard2.x` projects use the tool matching the SDK.
+- .NET 5 through 9 are no longer shipped: projects targeting them fail the build with a message naming the supported frameworks. `RtForceTargetFramework` (`net481`, `net10.0`, `net11.0`) overrides the choice.
+- .NET Framework projects generate with `rtcli.exe`, so they need Windows.
+- Built with `dotnet pack` (`dotnet pack Reinforced.Typings/Reinforced.Typings.csproj -c Release -o artifacts`); CI runs the unit tests and an end-to-end package test on Linux and Windows.
 - All namespaces unchanged for easy migration from `Reinforced.Typings`
 
 ### Migration from Reinforced.Typings
@@ -40,7 +40,7 @@ News
 Simply replace your NuGet package reference:
 ```diff
 - <PackageReference Include="Reinforced.Typings" Version="1.6.7" />
-+ <PackageReference Include="Reinforced.Typings.vNext" Version="2.0.2" />
++ <PackageReference Include="Reinforced.Typings.vNext" Version="3.0.0" />
 ```
 
 No code changes required - all namespaces remain `Reinforced.Typings.*`.
