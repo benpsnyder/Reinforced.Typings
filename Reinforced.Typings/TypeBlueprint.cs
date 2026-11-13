@@ -415,7 +415,7 @@ namespace Reinforced.Typings
         /// <returns>True, when property is ignored. False otherwise</returns>
         public bool IsIgnored(PropertyInfo member)
         {
-            return _ignored.Contains(member) || (member.GetCustomAttribute<TsIgnoreAttribute>() != null);
+            return member.IsExplicitInterfaceImplementation() || _ignored.Contains(member)|| (member.GetCustomAttribute<TsIgnoreAttribute>() != null);
         }
 
         /// <summary>
@@ -433,7 +433,7 @@ namespace Reinforced.Typings
         /// <returns>True, when type member is ignored. False otherwise</returns>
         public bool IsIgnored(MemberInfo member)
         {
-            if (member is PropertyInfo) return IsIgnored((PropertyInfo)member);
+if (member is PropertyInfo) return IsIgnored((PropertyInfo)member);
             if (member is MethodInfo) return IsIgnored((MethodInfo)member);
             if (member is FieldInfo) return IsIgnored((FieldInfo)member);
             return false;
@@ -445,7 +445,7 @@ namespace Reinforced.Typings
         /// <returns>True, when method is ignored. False otherwise</returns>
         public bool IsIgnored(MethodInfo member)
         {
-            return _ignored.Contains(member) || (member.GetCustomAttribute<TsIgnoreAttribute>(false) != null);
+            return member.IsExplicitInterfaceImplementation() || _ignored.Contains(member)|| (member.GetCustomAttribute<TsIgnoreAttribute>(false) != null);
         }
 
         #endregion
