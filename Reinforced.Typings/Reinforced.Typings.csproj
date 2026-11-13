@@ -1,235 +1,39 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2A5CCD5C-E660-4088-8937-9632ABBBCDBB}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFrameworks>net481;net10.0;net11.0</TargetFrameworks>
     <RootNamespace>Reinforced.Typings</RootNamespace>
     <AssemblyName>Reinforced.Typings</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <AssemblyTitle>Reinforced.Typings</AssemblyTitle>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-    <DocumentationFile>bin\Debug\Reinforced.Typings.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Reinforced.Typings.xml</DocumentationFile>
-    <Prefer32Bit>false</Prefer32Bit>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-  </PropertyGroup>
+
+  <!-- Package: this project packs Reinforced.Typings.vNext; eng/Package.targets adds tools/ and build/. -->
   <PropertyGroup>
-    <StartupObject>
-    </StartupObject>
+    <IsPackable>true</IsPackable>
+    <PackageId>Reinforced.Typings.vNext</PackageId>
+    <Title>Reinforced.Typings.vNext</Title>
+    <Authors>Pavel B. Novikov and contributors</Authors>
+    <Description>Reinforced.Typings is automated, reflection-based glue code generator for TypeScript. It is MSBuild-integrated and can generate MVC/WebAPI services glue code, JSDOC and architecture mockups from your assemblies.</Description>
+    <PackageTags>mvc web typescript</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/benpsnyder/Reinforced.Typings</PackageProjectUrl>
+    <PackageCopyright>© 2023 Pavel B. Novikov</PackageCopyright>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)../stuff/relnotes/$(Version).md'))</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/benpsnyder/Reinforced.Typings</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- tools/ and build/ hold executables and an MSBuild task, not lib assets. -->
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
   </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Compile Remove="Sign.cs" Condition="'$(RtSign)' != 'true'" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AccessModifier.cs" />
-    <Compile Include="Ast\DocTag.cs" />
-    <Compile Include="Ast\IDecoratable.cs" />
-    <Compile Include="Ast\ITypeMember.cs" />
-    <Compile Include="Ast\IRtVisitor.cs" />
-    <Compile Include="Ast\JsdocTagAttribute.cs" />
-    <Compile Include="Ast\RtArgument.cs" />
-    <Compile Include="Ast\TypeNames\RtArrayType.cs" />
-    <Compile Include="Ast\RtClass.cs" />
-    <Compile Include="Ast\RtCompilationUnit.cs" />
-    <Compile Include="Ast\RtConstructor.cs" />
-    <Compile Include="Ast\RtDecorator.cs" />
-    <Compile Include="Ast\TypeNames\RtAsyncType.cs" />
-    <Compile Include="Ast\TypeNames\RtDelegateType.cs" />
-    <Compile Include="Ast\TypeNames\RtDictionaryType.cs" />
-    <Compile Include="Ast\RtEnum.cs" />
-    <Compile Include="Ast\RtEnumValue.cs" />
-    <Compile Include="Ast\RtField.cs" />
-    <Compile Include="Ast\RtFunction.cs" />
-    <Compile Include="Ast\RtIdentifier.cs" />
-    <Compile Include="Ast\Dependency\RtImport.cs" />
-    <Compile Include="Ast\RtInterface.cs" />
-    <Compile Include="Ast\RtJsdocNode.cs" />
-    <Compile Include="Ast\RtMember.cs" />
-    <Compile Include="Ast\RtNamespace.cs" />
-    <Compile Include="Ast\RtNode.cs" />
-    <Compile Include="Ast\RtRaw.cs" />
-    <Compile Include="Ast\Dependency\RtReference.cs" />
-    <Compile Include="Ast\TypeNames\RtSimpleTypeName.cs" />
-    <Compile Include="Ast\TypeNames\RtTuple.cs" />
-    <Compile Include="Ast\TypeNames\RtTypeName.cs" />
-    <Compile Include="Attributes\IAutoexportSwitchAttribute.cs" />
-    <Compile Include="Attributes\TsThirdPartyAttribute.cs" />
-    <Compile Include="ExportContext\ExportContext.Operations.cs" />
-    <Compile Include="ExportContext\ExportContext.Readonly.cs" />
-    <Compile Include="ExportContext\ExportContext.Configurables.cs" />
-    <Compile Include="ExportContext\ExportContext.Initialization.cs" />
-    <Compile Include="Fluent\ConfigurationBuilderExtensions.cs" />
-    <Compile Include="Fluent\MemberBuilders\MemberExportBuilder.EnumValue.cs" />
-    <Compile Include="Fluent\MemberBuilders\MemberExportBuilder.cs" />
-    <Compile Include="Fluent\MemberBuilders\MemberExportBuilder.Field.cs" />
-    <Compile Include="Fluent\MemberExtensions\MemberExportExtensions.EnumValue.cs" />
-    <Compile Include="Fluent\MemberExtensions\MemberExportExtensions.cs" />
-    <Compile Include="Fluent\MemberExtensions\MemberExportExtensions.Property.cs" />
-    <Compile Include="Fluent\MemberExtensions\MemberExportExtensions.Parameter.cs" />
-    <Compile Include="Fluent\MemberExtensions\MemberExportExtensions.Method.cs" />
-    <Compile Include="Fluent\MemberBuilders\MemberExportBuilder.Method.cs" />
-    <Compile Include="Fluent\MemberBuilders\MemberExportBuilder.Property.cs" />
-    <Compile Include="Fluent\MemberBuilders\MemberExportBuilder.Parameter.cs" />
-    <Compile Include="Fluent\TypeBuilders\TypeExportBuilder.ThirdParty`1.cs" />
-    <Compile Include="Fluent\TypeBuilders\TypeExportBuilder.Class`1.cs" />
-    <Compile Include="Fluent\TypeBuilders\TypeExportBuilder.Interface`1.cs" />
-    <Compile Include="Fluent\TypeBuilders\TypeExportBuilder.Enum.cs" />
-    <Compile Include="Fluent\TypeBuilders\TypeExportBuilder.Interface.cs" />
-    <Compile Include="Fluent\TypeBuilders\TypeExportBuilder.Class.cs" />
-    <Compile Include="Fluent\TypeBuilders\TypeExportBuilder.ThirdParty.cs" />
-    <Compile Include="Fluent\TypeBuilders\TypeExportBuilder.ClassOrInterface.cs" />
-    <Compile Include="Fluent\TypeBuilders\TypeExportBuilder.cs" />
-    <Compile Include="Fluent\TypeExtensions\TypeExportExtensions.All.ThirdParty.cs" />
-    <Compile Include="Fluent\TypeExtensions\TypeExportExtensions.Enum.cs" />
-    <Compile Include="Fluent\TypeExtensions\TypeExportExtensions.Interface.cs" />
-    <Compile Include="Fluent\TypeExtensions\TypeExportExtensions.Class.cs" />
-    <Compile Include="Fluent\TypeExtensions\TypeExportExtensions.cs" />
-    <Compile Include="Fluent\TypeExtensions\TypeExportExtensions.All.NamesAndNamespaces.cs" />
-    <Compile Include="Fluent\TypeExtensions\TypeExportExtensions.All.ReferencesAndImports.cs" />
-    <Compile Include="Fluent\TypeExtensions\TypeExportExtensions.All.Substitutions.cs" />
-    <Compile Include="Fluent\WithExtensions\WithExtensions.Properties.cs" />
-    <Compile Include="Fluent\WithExtensions\WithExtensions.Methods.cs" />
-    <Compile Include="Fluent\WithExtensions\WithExtensions.Fields.cs" />
-    <Compile Include="Fluent\InferringExtensions.cs" />
-    <Compile Include="InlineTypeInferers.cs" />
-    <Compile Include="Attributes\TsAddTypeImportAttribute.cs" />
-    <Compile Include="Attributes\TsAddTypeReference.cs" />
-    <Compile Include="Attributes\TsAttributeBase.cs" />
-    <Compile Include="Attributes\TsClassAttribute.cs" />
-    <Compile Include="Attributes\TsBaseParamAttribute.cs" />
-    <Compile Include="Attributes\TsDeclarationAttributeBase.cs" />
-    <Compile Include="Attributes\TsDecoratorAttribute.cs" />
-    <Compile Include="Attributes\TsEnumAttribute.cs" />
-    <Compile Include="Attributes\TsFileAttribute.cs" />
-    <Compile Include="Attributes\TsFunctionAttribute.cs" />
-    <Compile Include="Attributes\TsGenericAttribute.cs" />
-    <Compile Include="Attributes\TsGlobalAttribute.cs" />
-    <Compile Include="Attributes\TsIgnoreAttribute.cs" />
-    <Compile Include="Attributes\TsImportAttribute.cs" />
-    <Compile Include="Attributes\TsInterfaceAttribute.cs" />
-    <Compile Include="Attributes\TsParameterAttribute.cs" />
-    <Compile Include="Attributes\TsPropertyAttribute.cs" />
-    <Compile Include="Attributes\TsReferenceAttribute.cs" />
-    <Compile Include="Attributes\TsTypedAttributeBase.cs" />
-    <Compile Include="Attributes\TsTypedMemberAttributeBase.cs" />
-    <Compile Include="Attributes\TsValueAttribute.cs" />
-    <Compile Include="DictionaryExtensions.cs" />
-    <Compile Include="Exceptions\ErrorMessage.cs" />
-    <Compile Include="Exceptions\ErrorMessages.cs" />
-    <Compile Include="Exceptions\RtException.cs" />
-    <Compile Include="Exceptions\RtWarning.cs" />
-    <Compile Include="ExportedFile.cs" />
-    <Compile Include="Fluent\GlobalConfigurationBuilder.cs" />
-    <Compile Include="Fluent\LambdaHelpers.cs" />
-    <Compile Include="Fluent\Parameter.cs" />
-    <Compile Include="Fluent\ConfigurationBuilder.cs" />
-    <Compile Include="GeneratorManager.cs" />
-    <Compile Include="Generators\ClassAndInterfaceGeneratorBase.cs" />
-    <Compile Include="Generators\TsCodeGeneratorBase.cs" />
-    <Compile Include="GlobalParameters.cs" />
-    <Compile Include="IFilesOperations.cs" />
-    <Compile Include="ProjectBlueprint.cs" />
-    <Compile Include="ReferencesInspection\ImportComparer.cs" />
-    <Compile Include="ReferencesInspection\InspectedReferences.cs" />
-    <Compile Include="Location.cs" />
-    <Compile Include="ReferencesInspection\ReferenceComparer.cs" />
-    <Compile Include="ReferencesInspection\ReferenceProcessorBase.cs" />
-    <Compile Include="TypeBlueprint.cs" />
-    <Compile Include="Visitors\TextExportingVisitor.cs" />
-    <Compile Include="Visitors\TypedVisitorBase.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.Dependencies.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtConstructor.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtEnum.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtEnumValue.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtFunction.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtJsdocNode.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtIdentifier.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtNamespace.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtRaw.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtClass.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtArgument.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtInterface.cs" />
-    <Compile Include="Visitors\TypeScript\TypeScriptExportVisitor.RtField.cs" />
-    <Compile Include="Visitors\TypeScript\Types\TypeScriptExportVisitor.RtAsyncType.cs" />
-    <Compile Include="Visitors\TypeScript\Types\TypeScriptExportVisitor.RtSimpleTypeName.cs" />
-    <Compile Include="Visitors\TypeScript\Types\TypeScriptExportVisitor.RtTuple.cs" />
-    <Compile Include="Visitors\TypeScript\Types\TypeScriptExportVisitor.RtArrayType.cs" />
-    <Compile Include="Visitors\TypeScript\Types\TypeScriptExportVisitor.RtDelegateType.cs" />
-    <Compile Include="Visitors\TypeScript\Types\TypeScriptExportVisitor.RtDictionaryType.cs" />
-    <Compile Include="Visitors\Typings\TypingsExportVisitor.RtEnum.cs" />
-    <Compile Include="Visitors\Typings\TypingsExportVisitor.cs" />
-    <Compile Include="Visitors\Typings\TypingsExportVisitor.RtClass.cs" />
-    <Compile Include="Visitors\Typings\TypingsExportVisitor.RtConstructor.cs" />
-    <Compile Include="Visitors\Typings\TypingsExportVisitor.RtField.cs" />
-    <Compile Include="Visitors\Typings\TypingsExportVisitor.RtFunction.cs" />
-    <Compile Include="Visitors\Typings\TypingsExportVisitor.RtModule.cs" />
-    <Compile Include="Visitors\VisitorBase.cs" />
-    <Compile Include="Xmldoc\DocumentationManager.cs" />
-    <Compile Include="Xmldoc\Model\DocumentationMemberType.cs" />
-    <Compile Include="Xmldoc\Model\DocumentationMemberExtensions.cs" />
-    <Compile Include="Xmldoc\Model\Model.cs" />
-    <Compile Include="Xmldoc\Model\XmlIgnoreInner.cs" />
-    <Compile Include="ExportContext\ExportContext.cs" />
-    <Compile Include="FilesOperations.cs" />
-    <Compile Include="Generators\ClassCodeGenerator.cs" />
-    <Compile Include="Generators\ConstructorCodeGenerator.cs" />
-    <Compile Include="Generators\EnumGenerator.cs" />
-    <Compile Include="Generators\FieldCodeGenerator.cs" />
-    <Compile Include="Generators\InterfaceCodeGenerator.cs" />
-    <Compile Include="Generators\ITsCodeGenerator.cs" />
-    <Compile Include="Generators\MethodCodeGenerator.cs" />
-    <Compile Include="Generators\NamespaceCodeGenerator.cs" />
-    <Compile Include="Generators\ParameterCodeGenerator.cs" />
-    <Compile Include="Generators\PropertyCodeGenerator.cs" />
-    <Compile Include="Generators\ContextExtensions.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TsExporter.cs" />
-    <Compile Include="TypeExtensions.cs" />
-    <Compile Include="TypeResolver.cs" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
+  <Import Project="..\eng\Package.targets" />
 </Project>

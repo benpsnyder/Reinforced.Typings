@@ -206,7 +206,7 @@ FakesAssemblies/
 Playground/
 
 # Reinforced Typings specific
-Reinforced.Typings.Private.sln
+Reinforced.Typings.Private.sln*
 Reinforced.Typings.pfx
 docplan.txt
 /package/build
@@ -218,3 +218,12 @@ docplan.txt
 
 \.idea/
 /package
+
+# Stray XML-doc output from the old .Dev projects
+*.Dev.xml
+
+# e2e consumer output when built in place
+e2e/Consumer/generated/
+
+# dotnet pack output
+/artifacts/

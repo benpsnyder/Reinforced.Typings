@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Reinforced.Typings.Cli.NETCore": {
-      "commandName": "Project",
-      "commandLineArgs": "profile \"w:\\Work\\Reinforced\\Typings\\testfile.txt\""
-    }
-  }
-}

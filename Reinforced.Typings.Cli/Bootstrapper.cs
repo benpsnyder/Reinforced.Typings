@@ -1,47 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-#if NETCORE
-using System.Runtime.Loader;
-#endif
 using Reinforced.Typings.Exceptions;
 using Reinforced.Typings.Fluent;
 
 namespace Reinforced.Typings.Cli
 {
-    internal static class CoreTypeExtensions
-    {
-
-        internal static PropertyInfo[] _GetProperties(this Type t, BindingFlags flags)
-        {
-#if NETCORE
-            return t.GetTypeInfo().GetProperties(flags);
-#else
-            return t.GetProperties(flags);
-#endif
-        }
-        internal static PropertyInfo _GetProperty(this Type t, string name)
-        {
-#if NETCORE
-            return t.GetTypeInfo().GetProperty(name);
-#else
-            return t.GetProperty(name);
-#endif
-        }
-
-        internal static MethodInfo _GetMethod(this Type t, string name)
-        {
-#if NETCORE
-            return t.GetTypeInfo().GetMethod(name);
-#else
-            return t.GetMethod(name);
-#endif
-        }
-
-    }
-
     internal class ReferenceCacheEntry
     {
 
@@ -73,13 +39,7 @@ namespace Reinforced.Typings.Cli
             }
             try
             {
-                if (string.Compare(args[0], "profile",
-#if NETCORE
-                StringComparison.CurrentCultureIgnoreCase
-#else
-                StringComparison.InvariantCultureIgnoreCase
-#endif
-                    ) == 0)
+                if (string.Compare(args[0], "profile", StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     if (!File.Exists(args[1]))
                     {
@@ -180,7 +140,7 @@ namespace Reinforced.Typings.Cli
                 var type = sourceAssembly.GetType(fullQualifiedType, false);
                 if (type != null)
                 {
-                    var constrMethod = type._GetMethod(method);
+                    var constrMethod = type.GetMethod(method);
                     if (constrMethod != null && constrMethod.IsStatic)
                     {
 
@@ -219,7 +179,7 @@ namespace Reinforced.Typings.Cli
             Console.WriteLine();
 
             var t = typeof(ExporterConsoleParameters);
-            var props = t._GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var props = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var propertyInfo in props)
             {
                 var attr = propertyInfo.GetCustomAttribute<ConsoleHelpAttribute>();
@@ -312,7 +272,7 @@ namespace Reinforced.Typings.Cli
                 var key = kv[0].Trim();
                 var value = kv[1].Trim().Trim('"');
 
-                var prop = t._GetProperty(key);
+                var prop = t.GetProperty(key);
                 if (prop == null)
                 {
                     BuildWarn(ErrorMessages.RTW0011_UnrecognizedConfigurationParameter, key);

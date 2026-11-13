@@ -162,7 +162,7 @@ Example:   rtcli.exe SuppressedWarnings=""RTW0001;2;3"" ")]
         {
             List<string> arguments = new List<string>();
 
-            var props = typeof(ExporterConsoleParameters)._GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var props = typeof(ExporterConsoleParameters).GetProperties(BindingFlags.Public | BindingFlags.Instance);
             const string propFormat = "{0}=\"{1}\"";
             foreach (var propertyInfo in props)
             {

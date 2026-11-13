@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <RtTargetFile>$(ProjectDir)generated/consumer.ts</RtTargetFile>
+    <RtConfigurationMethod>E2E.Consumer.TypingsConfiguration.Configure</RtConfigurationMethod>
+    <RtDivideTypesAmongFiles>false</RtDivideTypesAmongFiles>
+    <RtTargetDirectory></RtTargetDirectory>
+    <!--
+      'false' because 2.0.3 fails with MSB4044 when this is 'true' in an SDK-style project
+      (RemoveTypeScriptStep.Original is empty there). The runner passes
+      -p:RtBypassTypeScriptCompilation=true for the extra "bypass" run on 3.0.0.
+    -->
+    <RtBypassTypeScriptCompilation>false</RtBypassTypeScriptCompilation>
+    <RtDisable>false</RtDisable>
+    <RtSuppress></RtSuppress>
+  </PropertyGroup>
+</Project>

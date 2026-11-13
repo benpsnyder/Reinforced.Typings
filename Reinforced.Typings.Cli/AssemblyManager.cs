@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Reinforced.Typings.Exceptions;
-#if NETCORE
+#if !NETFRAMEWORK
 using System.Runtime.Loader;
 #endif
 
@@ -49,7 +49,7 @@ namespace Reinforced.Typings.Cli
 
         internal void TurnOffAdditionalResolvation()
         {
-#if NETCORE
+#if !NETFRAMEWORK
             AssemblyLoadContext.Default.Resolving -= CurrentDomainOnAssemblyResolve;
 #else
             AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomainOnAssemblyResolve;
@@ -61,7 +61,7 @@ namespace Reinforced.Typings.Cli
         {
             BuildReferencesCache();
 
-#if NETCORE
+#if !NETFRAMEWORK
             AssemblyLoadContext.Default.Resolving += CurrentDomainOnAssemblyResolve;
 #else
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
@@ -81,7 +81,7 @@ namespace Reinforced.Typings.Cli
 
                     try
                     {
-#if NETCORE
+#if !NETFRAMEWORK
                         var a = AssemblyLoadContext.Default.LoadFromAssemblyPath(path);
 #else
                         var a = Assembly.LoadFrom(path);
@@ -131,7 +131,7 @@ namespace Reinforced.Typings.Cli
             }
         }
 
-#if NETCORE
+#if !NETFRAMEWORK
 
         private Assembly CurrentDomainOnAssemblyResolve(AssemblyLoadContext context, AssemblyName assemblyName)
         {

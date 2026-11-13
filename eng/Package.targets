@@ -1,0 +1,62 @@
+<Project>
+  <!--
+    Lays out the non-lib parts of the Reinforced.Typings.vNext package. Imported by
+    Reinforced.Typings.csproj, whose own TargetFrameworks produce lib/<tfm>/.
+
+      tools/<tfm>/   rtcli, published once per library framework (net481, net10.0, net11.0)
+      build/<tfm>/   the MSBuild task (net472, netstandard2.0)
+      build/Reinforced.Typings.vNext.targets
+      readme.txt, icon.png, README.md
+
+    Run with: dotnet pack Reinforced.Typings/Reinforced.Typings.csproj -c Release -o artifacts
+  -->
+  <PropertyGroup>
+    <RtRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))/</RtRoot>
+    <RtPackStaging>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)pack/'))</RtPackStaging>
+    <RtCliProject>$(RtRoot)Reinforced.Typings.Cli/Reinforced.Typings.Cli.csproj</RtCliProject>
+    <RtIntegrateProject>$(RtRoot)Reinforced.Typings.Integrate/Reinforced.Typings.Integrate.csproj</RtIntegrateProject>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);RtPackTool</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <RtTaskFramework Include="net472;netstandard2.0" />
+    <None Include="$(RtRoot)stuff/Reinforced.Typings.vNext.targets" Pack="true" PackagePath="build/" Visible="false" />
+    <None Include="$(RtRoot)icon.png" Pack="true" PackagePath="" Visible="false" />
+    <None Include="$(RtRoot)README.md" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
+
+  <!-- Runs in each inner build: the tool frameworks are exactly the library frameworks. -->
+  <Target Name="RtPackTool">
+    <PropertyGroup>
+      <_RtToolDir>$(RtPackStaging)tools/$(TargetFramework)/</_RtToolDir>
+    </PropertyGroup>
+    <RemoveDir Directories="$(_RtToolDir)" />
+    <MSBuild Projects="$(RtCliProject)"
+             Targets="Publish"
+             Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework);PublishDir=$(_RtToolDir)" />
+    <ItemGroup>
+      <_RtToolFile Include="$(_RtToolDir)**/*" />
+      <TfmSpecificPackageFile Include="@(_RtToolFile)" PackagePath="tools/$(TargetFramework)/" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Runs once, in the outer build. -->
+  <Target Name="RtPackTaskAndReadme" BeforeTargets="GenerateNuspec">
+    <RemoveDir Directories="$(RtPackStaging)build/" />
+    <MSBuild Projects="$(RtIntegrateProject)"
+             Targets="Publish"
+             Properties="Configuration=$(Configuration);TargetFramework=%(RtTaskFramework.Identity);PublishDir=$(RtPackStaging)build/%(RtTaskFramework.Identity)/" />
+
+    <!-- readme.txt: the welcome text followed by a default settings file to copy. -->
+    <PropertyGroup>
+      <_RtReadme>$([MSBuild]::Escape($([System.IO.File]::ReadAllText('$(RtRoot)stuff/readme.txt'))))$([MSBuild]::Escape($([System.IO.File]::ReadAllText('$(RtRoot)stuff/Reinforced.Typings.settings.xml'))))</_RtReadme>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(RtPackStaging)readme.txt" Lines="$(_RtReadme)" Overwrite="true" />
+
+    <ItemGroup>
+      <_RtTaskFile Include="$(RtPackStaging)build/**/Reinforced.Typings.Integrate.dll;$(RtPackStaging)build/**/Reinforced.Typings.Integrate.pdb" />
+      <_PackageFiles Include="@(_RtTaskFile)" PackagePath="build/" BuildAction="None" />
+      <_PackageFiles Include="$(RtPackStaging)readme.txt" PackagePath="readme.txt" BuildAction="None" />
+    </ItemGroup>
+  </Target>
+</Project>

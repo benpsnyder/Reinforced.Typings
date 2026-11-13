@@ -12,7 +12,10 @@ namespace Reinforced.Typings.Integrate
         [Output]
         public string[] Fixed { get; set; }
 
-        [Required]
+        /// <summary>
+        /// Semicolon-separated target list. Not [Required]: SDK-style projects leave some of the
+        /// lists this task is given (e.g. PublishPipelineCollectFilesCore) empty.
+        /// </summary>
         public string Original { get; set; }
 
         /// <summary>Executes a task.</summary>
@@ -20,7 +23,7 @@ namespace Reinforced.Typings.Integrate
         public bool Execute()
         {
             Console.WriteLine("RT is fixing build tasks");
-            string[] targets = Original.Trim().Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] targets = (Original ?? string.Empty).Trim().Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
             List<string> result = new List<string>();
             foreach (string s in targets)
             {
