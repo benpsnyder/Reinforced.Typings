@@ -15,7 +15,8 @@
 // options and the Effect Schema emitter), compared with golden/consumer.modern.ts and
 // golden/consumer.modern.schema.ts. --check-run rebuilds the first consumer to verify that unchanged
 // output keeps its timestamp, that check mode (RtCheckMode=true) passes on current output and fails
-// with error RT0019 (RTE0019) on drift without touching the file.
+// with error RT0019 (RTE0019) on drift without touching the file, and that RtSkipUnchanged skips an
+// unchanged generation, honours RtForce and regenerates an edited output.
 // Exit code is the number of failed builds (0 = all passed).
 
 using System.Diagnostics;
@@ -163,6 +164,23 @@ static string CheckRun(ProcessStartInfo template, string dir, string work)
     File.WriteAllText(Path.Combine(work, "check-current.log"), output);
     if (exit != 0) return $"FAIL check mode on current output exited {exit}";
 
+    // RtSkipUnchanged: the first run writes the stamp, the second skips rtcli, an edited output regenerates.
+    var current = File.ReadAllText(target);
+    (exit, output) = Run(Rebuild("-p:RtSkipUnchanged=true"));
+    File.WriteAllText(Path.Combine(work, "skip-first.log"), output);
+    if (exit != 0) return $"FAIL RtSkipUnchanged first run exited {exit}";
+    (exit, output) = Run(Rebuild("-p:RtSkipUnchanged=true", "-v:n"));
+    File.WriteAllText(Path.Combine(work, "skip-second.log"), output);
+    if (exit != 0 || !output.Contains("generation; skipped")) return "FAIL RtSkipUnchanged did not skip an unchanged generation";
+    (exit, output) = Run(Rebuild("-p:RtSkipUnchanged=true", "-p:RtForce=true", "-v:n"));
+    File.WriteAllText(Path.Combine(work, "skip-force.log"), output);
+    if (exit != 0 || output.Contains("generation; skipped")) return "FAIL RtForce=true did not force generation";
+    File.WriteAllText(target, "// edited\n");
+    (exit, output) = Run(Rebuild("-p:RtSkipUnchanged=true", "-v:n"));
+    File.WriteAllText(Path.Combine(work, "skip-edited.log"), output);
+    if (exit != 0 || output.Contains("generation; skipped") || File.ReadAllText(target) != current)
+        return "FAIL RtSkipUnchanged skipped although the output had been edited";
+
     var drifted = File.ReadAllText(target) + "// drift\n";
     File.WriteAllText(target, drifted);
     (exit, output) = Run(Rebuild("-p:RtCheckMode=true"));
@@ -170,7 +188,7 @@ static string CheckRun(ProcessStartInfo template, string dir, string work)
     if (exit == 0) return "FAIL check mode passed although consumer.ts had drifted";
     if (!output.Contains("error RT0019")) return "FAIL check mode failed without error RT0019";
     if (File.ReadAllText(target) != drifted) return "FAIL check mode modified consumer.ts";
-    return "PASS timestamp kept; check mode passes, then fails on drift (error RT0019)";
+    return "PASS timestamp kept; skip/force/edit; check mode passes, then fails on drift (error RT0019)";
 }
 
 static string Compare(byte[] expected, byte[] actual)

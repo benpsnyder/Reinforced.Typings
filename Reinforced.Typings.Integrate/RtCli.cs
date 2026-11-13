@@ -110,6 +110,87 @@ namespace Reinforced.Typings.Integrate
         /// </summary>
         public string EffectSchemaFile { get; set; }
 
+        /// <summary>
+        /// Skip running rtcli when the generation key (source assemblies, XML docs, references,
+        /// settings, tool and current output) matches the stamp of the last successful run
+        /// </summary>
+        public bool SkipUnchanged { get; set; }
+
+        /// <summary>
+        /// Force generation even when SkipUnchanged would skip it
+        /// </summary>
+        public bool Force { get; set; }
+
+        /// <summary>
+        /// Stamp file holding the key of the last successful generation (used with SkipUnchanged)
+        /// </summary>
+        public string StampFile { get; set; }
+
+        /// <summary>
+        /// Runs rtcli unless SkipUnchanged finds an identical generation key
+        /// </summary>
+        public override bool Execute()
+        {
+            var useStamp = SkipUnchanged && !CheckMode && !string.IsNullOrEmpty(StampFile);
+            if (!useStamp) return base.Execute();
+
+            string key;
+            try
+            {
+                key = ComputeGenerationKey();
+            }
+            catch (Exception ex)
+            {
+                Log.LogMessage(MessageImportance.Normal, "Reinforced.Typings: generation key not available ({0}); generating.", ex.Message);
+                GenerationStamp.Delete(StampFile);
+                return base.Execute();
+            }
+
+            if (!Force && GenerationStamp.Matches(StampFile, key))
+            {
+                Log.LogMessage(MessageImportance.High,
+                    "Reinforced.Typings: inputs and output unchanged since the last generation; skipped (set RtForce=true to regenerate).");
+                return true;
+            }
+
+            GenerationStamp.Delete(StampFile);
+            var ok = base.Execute();
+            if (ok && !Log.HasLoggedErrors)
+            {
+                // Recompute: the output files are part of the key and have just been written.
+                GenerationStamp.Write(StampFile, ComputeGenerationKey());
+            }
+            return ok;
+        }
+
+        private string ComputeGenerationKey()
+        {
+            var toolDir = GetProperRtcliPath();
+            var toolFile = Path.Combine(toolDir, Choice.IsNetFramework ? "rtcli.exe" : "rtcli.dll");
+            var settings = new List<string>
+            {
+                "framework=" + TargetFramework, "identifier=" + TargetFrameworkIdentifier, "version=" + TargetFrameworkVersion,
+                "sdk=" + SdkRuntimeVersion, "force-tf=" + RtForceTargetFramework, "tool=" + toolFile,
+                "target-file=" + FixTargetPath(TargetFile), "target-dir=" + FixTargetPath(TargetDirectory),
+                "hierarchical=" + Hierarchical, "doc=" + DocumentationFilePath, "method=" + ConfigurationMethod,
+                "suppress=" + SuppressedWarnings, "effect=" + FixTargetPath(EffectSchemaFile),
+                "task=" + typeof(RtCli).Assembly.FullName
+            };
+            var sources = ExtractSourceAssemblies().ToList();
+            settings.Add("sources=" + string.Join("|", sources));
+            var content = new List<string>(sources);
+            if (!string.IsNullOrEmpty(DocumentationFilePath) && DocumentationFilePath.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+                content.Add(DocumentationFilePath);
+            var metadata = new List<string> { toolFile, typeof(RtCli).Assembly.Location };
+            if (References != null) metadata.AddRange(References.Select(r => r.ItemSpec));
+            var outputs = new List<string>();
+            var outputDirs = new List<string>();
+            if (Hierarchical) outputDirs.Add(FixTargetPath(TargetDirectory));
+            else outputs.Add(FixTargetPath(TargetFile));
+            if (!string.IsNullOrEmpty(EffectSchemaFile)) outputs.Add(FixTargetPath(EffectSchemaFile));
+            return GenerationStamp.Compute(settings, content, metadata, outputs, outputDirs);
+        }
+
         /// <summary>Projects may set this to override a task's ToolName. Tasks may override this to prevent that.</summary>
         public override string ToolExe
         {
