@@ -67,7 +67,9 @@ namespace Reinforced.Typings.Generators
                     RtEnumValue value = new RtEnumValue
                     {
                         EnumValueName = n,
-                        EnumValue = Convert.ToInt64(v).ToString()
+                        // Format in the enum's underlying type: ulong values above long.MaxValue
+                        // (upstream #221) and negative values of signed enums both stay exact.
+                        EnumValue = Convert.ToString(Convert.ChangeType(v, Enum.GetUnderlyingType(element), System.Globalization.CultureInfo.InvariantCulture), System.Globalization.CultureInfo.InvariantCulture)
                     };
 
                     if (stringInit)
