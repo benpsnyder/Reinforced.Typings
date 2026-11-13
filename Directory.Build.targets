@@ -1,0 +1,9 @@
+<Project>
+  <!--
+    NETCORE selects the code paths that 2.0.3 compiled for its .NET and netstandard assets
+    (the Cake script passed it as RtAdditionalConstants). .NET Framework builds leave it undefined.
+  -->
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
+  </PropertyGroup>
+</Project>
