@@ -95,7 +95,7 @@ namespace Reinforced.Typings.Visitors.TypeScript
                 }
                 else
                 {
-                    CodeBlock("return Promise.resolve(null);");
+                    CodeBlock("return Promise.resolve(null!);");
                     return;
                 }
             }
@@ -106,7 +106,7 @@ namespace Reinforced.Typings.Visitors.TypeScript
             }
             else
             {
-                CodeBlock("return null;");
+                CodeBlock("return null!;");
             }
         }
 

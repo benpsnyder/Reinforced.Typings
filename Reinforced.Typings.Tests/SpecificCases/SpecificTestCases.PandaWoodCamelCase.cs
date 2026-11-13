@@ -9,7 +9,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void PandaWoodCamelCase()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IPandaWoodCamelCaseTest
 	{
 		id: number;

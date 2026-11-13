@@ -29,7 +29,7 @@ News
 =================
 > Version **3.1.0**
 
-Every new behaviour is opt-in; with none of the options below set, the generated output is byte-identical to 3.0.0.
+**Behaviour change:** the default output now compiles under TypeScript 6 and 7 in strict mode, so it differs from 3.0.0 in exactly two ways: namespaces are written `namespace X {` instead of `module X {` (TypeScript 6 and 7 reject `module X {}` with error TS1540), and the stub bodies of exported class methods are `return null!;` instead of `return null;` (TS2322 under `strictNullChecks`; `Promise.resolve(null)` likewise becomes `Promise.resolve(null!)`). `UseNamespaceKeyword(false)` restores the `module` keyword. Every other new behaviour is opt-in.
 
 - Generated files whose content did not change are no longer rewritten, so their timestamps survive and TypeScript watchers and incremental builds are not invalidated (always on; it changes no content).
 - **Check mode** for CI drift gates, **System.Text.Json awareness**, **modern TypeScript output options**, an **Effect Schema emitter** and **skipping unchanged generations**: see [3.1.0 options](#310-options).
@@ -73,7 +73,7 @@ Generation options (fluent `builder.Global(g => g...)` or `[assembly: TsGlobal(.
 | `EnumsAsUnionTypes()` / `EnumsAsUnionTypes` | off | Enums become `export type E = 0 \| 1` or `"A" \| "B"` instead of `enum`. Code that uses enum members as values (`E.A`, for example in constant initializers) does not compile with this option. |
 | `ReadonlyProperties()` / `ReadonlyProperties` | off | Properties and fields are emitted as `readonly`. |
 | `StrictNullability()` / `StrictNullability` | off | Separates nullable from optional: `int?` and nullable reference types become `T \| null` and stay required; `?` is used only for members that may be absent (`ForceNullable`, or `JsonIgnore` WhenWritingNull/WhenWritingDefault). While on, it replaces `AutoOptionalProperties` for nullability. |
-| `UseNamespaceKeyword()` / `UseNamespaceKeyword` | off | Writes `namespace X {` (and `declare namespace X {` for `.d.ts`) instead of the legacy `module X {`. TypeScript 6.0.3 and 7.0.2 both reject `module X {}` with **error TS1540**, also with `ignoreDeprecations: "6.0"`, so enable this (or `UseModules`) when compiling the output with TypeScript 6 or later. Upstream [#286](https://github.com/reinforced/Reinforced.Typings/issues/286). |
+| `UseNamespaceKeyword(false)` / `UseNamespaceKeyword = false` | **on** | On by default since 3.1.0: writes `namespace X {` (and `declare namespace X {` for `.d.ts`) instead of the legacy `module X {`, because TypeScript 6 and 7 both reject `module X {}` with **error TS1540**, also with `ignoreDeprecations: "6.0"`. Set it to `false` only if you need the 3.0.0 keyword for an older compiler. Upstream [#286](https://github.com/reinforced/Reinforced.Typings/issues/286). |
 | `ConvertDocumentationTags()` / `ConvertDocumentationTags` | off | Converts inline XML documentation tags in JSDoc: `<see cref="T:X"/>` and `<seealso>` become `{@link X}` when X is an exported type and plain text otherwise (members become `Type.Member`); `<see href>` becomes `{@link url text}`; `<see langword>`, `<paramref>`, `<typeparamref>` become their names; `<c>`/`<code>` become backtick code; other tags keep their text. Without it the XML is copied as it is. Upstream [#310](https://github.com/reinforced/Reinforced.Typings/issues/310). |
 
 #### Upstream issues fixed in 3.1.0
@@ -86,7 +86,9 @@ Always on, because they only remove build failures or invalid output:
 - [#221](https://github.com/reinforced/Reinforced.Typings/issues/221): `ulong` enums with values above `long.MaxValue` no longer throw; negative values of signed enums stay negative.
 - [#226](https://github.com/reinforced/Reinforced.Typings/issues/226): `rtcli profile` without a path prints usage and exits with code 1 instead of throwing; a missing profile file also exits with code 1.
 
-Opt-in, because they change output: `UseNamespaceKeyword` ([#286](https://github.com/reinforced/Reinforced.Typings/issues/286)) and `ConvertDocumentationTags` ([#310](https://github.com/reinforced/Reinforced.Typings/issues/310)), in the table above.
+On by default with an opt-out, because the old output does not compile under TypeScript 6 and 7: `UseNamespaceKeyword` ([#286](https://github.com/reinforced/Reinforced.Typings/issues/286)), plus `return null!;` stub method bodies. Opt-in: `ConvertDocumentationTags` ([#310](https://github.com/reinforced/Reinforced.Typings/issues/310)). Both are in the table above.
+
+CI type-checks every e2e golden file (default output, the modern variant and the Effect Schema module) with TypeScript 6.0.2 (`@typescript/typescript6`) and 7.0.2 (`typescript`) in strict mode; locally: `npm install --no-save --prefix <dir> @typescript/typescript6@6.0.2 typescript@7.0.2 effect@4.1.3`, then `dotnet run e2e/typecheck.cs -- --node-modules <dir>/node_modules`.
 
 #### Effect Schema emitter
 

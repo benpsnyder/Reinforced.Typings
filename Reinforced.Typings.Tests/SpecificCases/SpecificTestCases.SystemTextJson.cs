@@ -71,7 +71,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void SystemTextJsonPropertyAttributes()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IStjDto
 	{
 		first: number;
@@ -91,7 +91,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void SystemTextJsonIsOffByDefault()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IStjDto
 	{
 		name: string;
@@ -112,7 +112,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void SystemTextJsonStringEnum()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export enum StjColor {
 		Red = ""Red"",
 		DarkBlue = ""dark-blue""
@@ -129,7 +129,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void SystemTextJsonPolymorphismAsDiscriminatedUnion()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IStjShape
 	{
 		area: number;
@@ -157,7 +157,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void SystemTextJsonNamingPolicy()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IStjNamingDto
 	{
 		first_name: string;
@@ -177,7 +177,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void EnumsAsUnionTypes()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export type StjColor = ""Red"" | ""dark-blue"";
 	export type StjNumeric = 1 | 2;
 }";

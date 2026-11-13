@@ -13,7 +13,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
             string implementation2 = Guid.NewGuid().ToString() + ";";
 
             string result = $@"
-module Reinforced.Typings.Tests.SpecificCases {{
+namespace Reinforced.Typings.Tests.SpecificCases {{
 	export class ClassWithManyMethods
 	{{
         public DoSomethingElse() : void

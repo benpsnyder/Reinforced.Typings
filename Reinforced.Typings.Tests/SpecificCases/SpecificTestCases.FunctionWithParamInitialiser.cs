@@ -26,7 +26,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void FunctionWithParamInitializerAsInterface()
         {
             const string result = @"
-                module Reinforced.Typings.Tests.SpecificCases {
+                namespace Reinforced.Typings.Tests.SpecificCases {
 	                export interface IMyFunctionTestClassWithParamInitializer
 	                {
 		                MyProperty: string;
@@ -49,14 +49,14 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void FunctionWithParamInitializerAsClass()
         {
             const string result = @"
-                module Reinforced.Typings.Tests.SpecificCases {
+                namespace Reinforced.Typings.Tests.SpecificCases {
 	                export class MyFunctionTestClassWithParamInitializer
 	                {
 		                public MyProperty: string;
 		                public MyNumber: number;
 		                public doSomething(a: number = 4) : string
 		                {
-			                return null;
+			                return null!;
 		                }
 	                }
                 }

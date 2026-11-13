@@ -9,7 +9,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void DaggmanoAutoIBug()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IInternalUserDaggmano
 	{
 		Name: string;

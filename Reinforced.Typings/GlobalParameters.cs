@@ -268,7 +268,7 @@ namespace Reinforced.Typings
         }
 
         /// <summary>
-        /// Emit "namespace X {" instead of the legacy "module X {" (TypeScript 6 and 7 reject the latter with TS1540). Default false.
+        /// Emit "namespace X {" instead of the legacy "module X {" (TypeScript 6 and 7 reject the latter with TS1540). Default true since 3.1.0; false restores "module".
         /// </summary>
         public bool UseNamespaceKeyword
         {

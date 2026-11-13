@@ -24,23 +24,23 @@ namespace Reinforced.Typings.Tests.SpecificCases
 ///<reference path=""../Fluently/File3.ts""/>
 ///<reference path=""../Indirect/File2.ts""/>
 
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export class SomeReferencingType
 	{
 		public Indirect() : Reinforced.Typings.Tests.SpecificCases.SomeIndirectlyReferencedClass
 		{
-			return null;
+			return null!;
 		}
 	}
 }";
             const string file2 = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export class SomeIndirectlyReferencedClass
 	{
 	}
 }";
             const string file3 = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export class SomeFluentReferencedType
 	{
 	}

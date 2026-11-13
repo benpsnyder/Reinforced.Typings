@@ -41,7 +41,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
                 s.Global(a => a.DontWriteWarningComment());
                 s.ExportAsEnum<ULongFlags>();
             }, @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export enum ULongFlags {
 		None = 0,
 		One = 1,
@@ -61,7 +61,7 @@ module Reinforced.Typings.Tests.SpecificCases {
                 s.ExportAsEnum<SignedFlags>();
                 s.ExportAsEnum<SByteValues>();
             }, @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export enum SignedFlags {
 		None = 0,
 		One = 1,

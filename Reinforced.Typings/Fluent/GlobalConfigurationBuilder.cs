@@ -222,10 +222,11 @@ namespace Reinforced.Typings.Fluent
 
         /// <summary>
         /// Emits "namespace X {" instead of the legacy "module X {" for namespace output.
-        /// TypeScript 6 and 7 reject "module X {}" with error TS1540.
+        /// TypeScript 6 and 7 reject "module X {}" with error TS1540. On by default since 3.1.0;
+        /// call UseNamespaceKeyword(false) to restore the legacy "module" keyword.
         /// </summary>
         /// <param name="builder">Conf builder</param>
-        /// <param name="value">True to use the namespace keyword</param>
+        /// <param name="value">True (default) for "namespace", false for the legacy "module" keyword</param>
         public static GlobalConfigurationBuilder UseNamespaceKeyword(this GlobalConfigurationBuilder builder, bool value = true)
         {
             builder.Parameters.UseNamespaceKeyword = value;

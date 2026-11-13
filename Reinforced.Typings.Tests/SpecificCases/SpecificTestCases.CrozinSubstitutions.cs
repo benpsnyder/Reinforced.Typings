@@ -30,7 +30,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void CrozinSubstitutions()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface ICrozinSubstitutionTest
 	{
 		GuidProperty: string;

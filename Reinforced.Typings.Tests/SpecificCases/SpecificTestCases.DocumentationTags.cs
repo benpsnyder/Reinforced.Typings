@@ -30,7 +30,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void DocumentationTagsAreConvertedWhenEnabled()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	/** Handles a collection of {@link Reinforced.Typings.Tests.SpecificCases.IDocTagItem}s and DocTagHidden; see items, `Count` and null. */
 	export interface IDocTagBar
 	{

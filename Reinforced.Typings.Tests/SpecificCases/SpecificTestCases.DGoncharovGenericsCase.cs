@@ -53,7 +53,7 @@ export class RequestHandler
 {
 	public DoRequest() : ITypedBasicResult<ISelectListItem[]>
 	{
-		return null;
+		return null!;
 	}
 }";
             AssertConfiguration(s =>
