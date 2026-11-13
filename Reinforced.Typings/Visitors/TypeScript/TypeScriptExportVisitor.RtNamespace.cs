@@ -16,7 +16,7 @@ namespace Reinforced.Typings.Visitors.TypeScript
                 AppendTabs();
                 if (node.GenerationMode == NamespaceGenerationMode.Module)
                 {
-                    WriteLine(String.Format("module {0} {{", node.Name));
+                    WriteLine(String.Format(ExportContext.Global.UseNamespaceKeyword ? "namespace {0} {{" : "module {0} {{", node.Name));
                 }
                 else
                 {
