@@ -44,6 +44,12 @@ namespace Reinforced.Typings.Attributes
         public bool GenerateDocumentation { get; set; }
 
         /// <summary>
+        /// Converts inline XML documentation tags (see cref, paramref, c, ...) to JSDoc ({@link X} for
+        /// exported types, plain text otherwise). Default false.
+        /// </summary>
+        public bool ConvertDocumentationTags { get; set; }
+
+        /// <summary>
         /// Specifies symbol used for tabulation
         /// </summary>
         public string TabSymbol { get; set; }

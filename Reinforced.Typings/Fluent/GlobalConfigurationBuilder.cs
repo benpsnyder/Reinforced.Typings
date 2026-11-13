@@ -120,6 +120,20 @@ namespace Reinforced.Typings.Fluent
         }
 
         /// <summary>
+        /// Converts inline XML documentation tags to JSDoc: see/seealso cref to {@link X} when X is an
+        /// exported type and to plain text otherwise; paramref, typeparamref and see langword to their
+        /// names; c and code to backtick code. Without it the tags are copied as they are.
+        /// </summary>
+        /// <param name="builder">Conf builder</param>
+        /// <param name="convert">True to convert</param>
+        public static GlobalConfigurationBuilder ConvertDocumentationTags(this GlobalConfigurationBuilder builder,
+            bool convert = true)
+        {
+            builder.Parameters.ConvertDocumentationTags = convert;
+            return builder;
+        }
+
+        /// <summary>
         /// Enables adaptation for TS modules system (--modules tsc.exe option)
         /// </summary>
         /// <param name="builder">Conf builder</param>

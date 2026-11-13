@@ -95,6 +95,21 @@ namespace Reinforced.Typings
         }
 
         /// <summary>
+        /// Converts inline XML documentation tags to JSDoc: see/seealso cref to {@link X} when X is an
+        /// exported type and to plain text otherwise; paramref, typeparamref and see langword to their
+        /// names; c and code to backtick code. Default false (tags are copied as they are).
+        /// </summary>
+        public bool ConvertDocumentationTags
+        {
+            get { return _attr.ConvertDocumentationTags; }
+            set
+            {
+                if (_isLocked) return;
+                _attr.ConvertDocumentationTags = value;
+            }
+        }
+
+        /// <summary>
         ///    Gets or sets whether all nullable properties must be exported as optional
         /// </summary>
         public bool AutoOptionalProperties
