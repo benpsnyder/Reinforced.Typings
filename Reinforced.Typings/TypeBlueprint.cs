@@ -433,10 +433,6 @@ namespace Reinforced.Typings
         /// <returns>True, when type member is ignored. False otherwise</returns>
         public bool IsIgnored(MemberInfo member)
         {
-#if NETCORE
-#else
-            //if (member is Type) return IsIgnored((Type)member);
-#endif
             if (member is PropertyInfo) return IsIgnored((PropertyInfo)member);
             if (member is MethodInfo) return IsIgnored((MethodInfo)member);
             if (member is FieldInfo) return IsIgnored((FieldInfo)member);

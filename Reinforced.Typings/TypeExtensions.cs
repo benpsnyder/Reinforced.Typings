@@ -29,21 +29,7 @@ namespace Reinforced.Typings
     {
         internal static object InstanceInternal(this Type t, params object[] parameters)
         {
-#if NETCOREAPP1_0
-            var dc = t.GetTypeInfo().DeclaredConstructors;
-            var needed = dc.Where(d=>d.GetParameters().Length == parameters.Length).FirstOrDefault();
-            return needed.Invoke(parameters);
-#elif NETSTANDARD1_5
-            var dc = t.GetTypeInfo().DeclaredConstructors;
-            var needed = dc.Where(d=>d.GetParameters().Length == parameters.Length).FirstOrDefault();
-            return needed.Invoke(parameters);
-#elif NETSTANDARD1_6
-            var dc = t.GetTypeInfo().DeclaredConstructors;
-            var needed = dc.Where(d=>d.GetParameters().Length == parameters.Length).FirstOrDefault();
-            return needed.Invoke(parameters);
-#else
             return Activator.CreateInstance(t, BindingFlags.NonPublic | BindingFlags.Instance, null, parameters, null);
-#endif
         }
 
         internal static IEnumerable<Type> _GetTypes(this Assembly a, IWarningsCollector warnings)
@@ -78,24 +64,9 @@ namespace Reinforced.Typings
             return proto;
         }
 
-#if NETCORE
-        internal static T GetCustomAttribute<T>(this Type t, bool inherit = true) where T : Attribute
-        {
-            return CustomAttributeExtensions.GetCustomAttribute<T>(t.GetTypeInfo(), inherit);
-        }
-        internal static IEnumerable<T> GetCustomAttributes<T>(this Type t, bool inherit = true) where T : Attribute
-        {
-            return CustomAttributeExtensions.GetCustomAttributes<T>(t.GetTypeInfo(), inherit);
-        }
-#endif
-
         internal static IEnumerable<object> _GetCustomAttributes(this Type t, bool inherit = true)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetCustomAttributes(inherit);
-#else
             return t.GetCustomAttributes(inherit);
-#endif
             
         }
 
@@ -113,80 +84,44 @@ namespace Reinforced.Typings
 
         internal static bool _IsGenericType(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().IsGenericType;
-#else
             return t.IsGenericType;
-#endif
         }
 
         internal static bool _IsGenericTypeDefinition(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().IsGenericTypeDefinition;
-#else
             return t.IsGenericTypeDefinition;
-#endif
         }
         internal static Type _BaseType(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().BaseType;
-#else
             return t.BaseType;
-#endif
         }
         internal static bool _IsEnum(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().IsEnum;
-#else
             return t.IsEnum;
-#endif
         }
         internal static bool _IsClass(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().IsClass;
-#else
             return t.IsClass;
-#endif
         }
 
         internal static bool _IsAssignableFrom(this Type t, Type t2)
         {
-#if NETCORE
-            return t.GetTypeInfo().IsAssignableFrom(t2);
-#else
             return t.IsAssignableFrom(t2);
-#endif
         }
 
         internal static bool _IsAbstract(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().IsAbstract;
-#else
             return t.IsAbstract;
-#endif
         }
 
         internal static bool _IsInterface(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().IsInterface;
-#else
             return t.IsInterface;
-#endif
         }
 
         internal static bool _IsArray(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().IsArray;
-#else
             return t.IsArray;
-#endif
         }
 
         internal static bool _IsReferenceType(this Type t)
@@ -196,91 +131,51 @@ namespace Reinforced.Typings
 
         internal static IEnumerable<Type> _GetInterfaces(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetInterfaces();
-#else
             return t.GetInterfaces();
-#endif
         }
         internal static FieldInfo[] _GetFields(this Type t, BindingFlags flags)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetFields(flags);
-#else
             return t.GetFields(flags);
-#endif
         }
 
         internal static FieldInfo[] _GetFields(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetFields();
-#else
             return t.GetFields();
-#endif
         }
 
         internal static FieldInfo _GetField(this Type t, string name)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetField(name, MembersFlags);
-#else
             return t.GetField(name, MembersFlags);
-#endif
         }
 
         internal static ConstructorInfo[] _GetConstructors(this Type t, BindingFlags flags)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetConstructors(flags);
-#else
             return t.GetConstructors(flags);
-#endif
         }
 
 
         internal static PropertyInfo[] _GetProperties(this Type t, BindingFlags flags)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetProperties(flags);
-#else
             return t.GetProperties(flags);
-#endif
         }
 
         internal static MethodInfo[] _GetMethods(this Type t, BindingFlags flags)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetMethods(flags);
-#else
             return t.GetMethods(flags);
-#endif
         }
 
         internal static MethodInfo _GetMethod(this Type t, string name)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetMethod(name, MembersFlags);
-#else
             return t.GetMethod(name, MembersFlags);
-#endif
         }
         internal static Type[] _GetGenericArguments(this Type t)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetGenericArguments();
-#else
             return t.GetGenericArguments();
-#endif
         }
 
         internal static PropertyInfo _GetProperty(this Type t, string name)
         {
-#if NETCORE
-            return t.GetTypeInfo().GetProperty(name, MembersFlags);
-#else
-            return t.GetProperty(name, MembersFlags | BindingFlags.GetProperty | BindingFlags.SetProperty);
-#endif
+            return t.GetProperty(name, MembersFlags);
         }
 
 
@@ -459,11 +354,7 @@ namespace Reinforced.Typings
         /// <returns>True if type is static. False otherwise</returns>
         public static bool IsStatic(this Type t)
         {
-#if NETCORE
-            return (t.GetTypeInfo().IsAbstract && t.GetTypeInfo().IsSealed);
-#else
             return (t.IsAbstract && t.IsSealed);
-#endif
         }
 
         /// <summary>

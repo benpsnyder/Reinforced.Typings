@@ -2,23 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Reinforced.Typings.Cli;
-
-namespace Reinforced.Typings.Cli
-{
-    public static class TypeExtensions
-    {
-        internal static PropertyInfo[] _GetProperties(this Type t, BindingFlags flags)
-        {
-            return t.GetProperties(flags);
-        }
-    }
-}
-
 
 namespace Reinforced.Typings.Integrate
 {
