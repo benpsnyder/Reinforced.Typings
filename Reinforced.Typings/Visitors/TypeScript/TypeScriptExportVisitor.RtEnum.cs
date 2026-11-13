@@ -1,9 +1,23 @@
+using System.Linq;
 using Reinforced.Typings.Ast;
 #pragma warning disable 1591
 namespace Reinforced.Typings.Visitors.TypeScript
 {
     partial class TypeScriptExportVisitor
     {
+        /// <summary>
+        /// Writes "type Name = v1 | v2 ...;" for an enum emitted as a union type
+        /// </summary>
+        protected void WriteEnumUnion(RtEnum node)
+        {
+            Write("type ");
+            Visit(node.EnumName);
+            Write(" = ");
+            var values = node.Values.Select(v => v.EnumValue).Distinct().ToArray();
+            Write(values.Length == 0 ? "never" : string.Join(" | ", values));
+            WriteLine(";");
+        }
+
         public override void Visit(RtEnum node)
         {
             if (node == null) return;
@@ -11,6 +25,13 @@ namespace Reinforced.Typings.Visitors.TypeScript
             var prev = Context;
             Context = WriterContext.Enum;
             AppendTabs();
+            if (node.IsUnionType)
+            {
+                if (node.Export) Write("export ");
+                WriteEnumUnion(node);
+                Context = prev;
+                return;
+            }
             if (node.Export) Write("export ");
             if (node.IsConst) Write("const ");
             Write("enum ");

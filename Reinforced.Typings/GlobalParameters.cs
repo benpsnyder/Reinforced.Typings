@@ -264,5 +264,83 @@ namespace Reinforced.Typings
                 _attr.AutoAsync = value;
             }
         }
+
+        /// <summary>
+        /// Honour System.Text.Json attributes (JsonPropertyName, JsonIgnore, JsonPropertyOrder, JsonStringEnumConverter, JsonStringEnumMemberName, JsonPolymorphic/JsonDerivedType). Attributes are detected by full name, so no System.Text.Json reference is needed. Default false.
+        /// </summary>
+        public bool UseSystemTextJson
+        {
+            get { return _attr.UseSystemTextJson; }
+            set
+            {
+                if (_isLocked) return;
+                _attr.UseSystemTextJson = value;
+            }
+        }
+
+        /// <summary>
+        /// Property naming policy that mirrors System.Text.Json's JsonNamingPolicy. Applies to properties without an explicit name and takes precedence over CamelCaseForProperties. Default None.
+        /// </summary>
+        public JsonNamingPolicyKind JsonNamingPolicy
+        {
+            get { return _attr.JsonNamingPolicy; }
+            set
+            {
+                if (_isLocked) return;
+                _attr.JsonNamingPolicy = value;
+            }
+        }
+
+        /// <summary>
+        /// Emit "import type" for imports generated for types exported as interfaces (module mode). Default false.
+        /// </summary>
+        public bool UseTypeImports
+        {
+            get { return _attr.UseTypeImports; }
+            set
+            {
+                if (_isLocked) return;
+                _attr.UseTypeImports = value;
+            }
+        }
+
+        /// <summary>
+        /// Emit enums as union types of their values (string or number literals) instead of TypeScript enums. Default false.
+        /// </summary>
+        public bool EnumsAsUnionTypes
+        {
+            get { return _attr.EnumsAsUnionTypes; }
+            set
+            {
+                if (_isLocked) return;
+                _attr.EnumsAsUnionTypes = value;
+            }
+        }
+
+        /// <summary>
+        /// Emit exported properties and fields as readonly. Default false.
+        /// </summary>
+        public bool ReadonlyProperties
+        {
+            get { return _attr.ReadonlyProperties; }
+            set
+            {
+                if (_isLocked) return;
+                _attr.ReadonlyProperties = value;
+            }
+        }
+
+        /// <summary>
+        /// Distinguish optional from nullable: nullable types are emitted as "T | null" and stay required; "?" is reserved for members that may be absent (forced optional, or JsonIgnore WhenWritingNull/WhenWritingDefault). Takes precedence over AutoOptionalProperties for nullability. Default false.
+        /// </summary>
+        public bool StrictNullability
+        {
+            get { return _attr.StrictNullability; }
+            set
+            {
+                if (_isLocked) return;
+                _attr.StrictNullability = value;
+            }
+        }
     }
 }

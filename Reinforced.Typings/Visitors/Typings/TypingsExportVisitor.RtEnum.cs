@@ -13,6 +13,13 @@ namespace Reinforced.Typings.Visitors.Typings
             var prev = Context;
             Context = WriterContext.Enum;
             AppendTabs();
+            if (node.IsUnionType)
+            {
+                if (node.Export && prev == WriterContext.Module) Write("export ");
+                WriteEnumUnion(node);
+                Context = prev;
+                return;
+            }
             if (node.Export)
             {
                 if (prev == WriterContext.Module) Write("export ");

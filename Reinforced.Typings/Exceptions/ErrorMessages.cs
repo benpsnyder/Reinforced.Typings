@@ -142,6 +142,21 @@ namespace Reinforced.Typings.Exceptions
         public static readonly ErrorMessage RTW0007_InvalidDictionaryKey = new ErrorMessage(0007, "{0} is not valid type for JS object key (original type {1})", "Type resolvation");
 
         /// <summary>
+        /// [JsonDerivedType] target is not exported
+        /// </summary>
+        public static readonly ErrorMessage RTW0015_DerivedTypeNotExported = new ErrorMessage(0015, "[JsonDerivedType] {0} of {1} is not exported, so it is left out of the discriminated union", "System.Text.Json");
+
+        /// <summary>
+        /// Effect Schema: TypeScript type has no Effect Schema equivalent
+        /// </summary>
+        public static readonly ErrorMessage RTW0016_EffectSchemaUnknownType = new ErrorMessage(0016, "Effect Schema: no schema for TypeScript type '{0}' of {1}; Schema.Unknown emitted", "Effect Schema");
+
+        /// <summary>
+        /// Effect Schema: type skipped
+        /// </summary>
+        public static readonly ErrorMessage RTW0017_EffectSchemaTypeSkipped = new ErrorMessage(0017, "Effect Schema: {0} is not emitted: {1}", "Effect Schema");
+
+        /// <summary>
         /// Error of type loding
         /// </summary>
         public static readonly ErrorMessage RTW0008_TypeloadException = new ErrorMessage(0008, "Some types cannot be loaded via reflection: {0}", "Type loading");

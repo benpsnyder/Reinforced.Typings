@@ -60,5 +60,15 @@ namespace Reinforced.Typings.Ast
 
         /// <inheritdoc />
         public List<RtDecorator> Decorators { get; private set; }
+
+        /// <summary>
+        /// Gets or sets whether the member is emitted with the readonly modifier
+        /// </summary>
+        public bool IsReadonly { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the member's type is emitted as "T | null"
+        /// </summary>
+        public bool IsNullableType { get; set; }
     }
 }

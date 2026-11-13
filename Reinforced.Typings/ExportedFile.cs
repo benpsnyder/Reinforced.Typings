@@ -125,22 +125,27 @@ namespace Reinforced.Typings
 
             RtImport result = null;
 
+            var typeOnly = _context.Global.UseTypeImports
+                           && (bp.IsExportingAsInterface() || t._IsEnum() && _context.Global.EnumsAsUnionTypes);
             if (References.StarImports.ContainsKey(relPath))
             {
-                return References.StarImports[relPath];
+                var existing = References.StarImports[relPath];
+                // One star import serves every type of that file: it stays type-only only while all of them are.
+                if (!typeOnly) existing.IsTypeOnly = false;
+                return existing;
             }
 
             if (_context.Global.DiscardNamespacesWhenUsingModules)
             {
                 var target = string.Format("{{ {0} }}", typeName);
-                result = new RtImport() { From = relPath, Target = target };
+                result = new RtImport() { From = relPath, Target = target, IsTypeOnly = typeOnly };
                 References.AddImport(result);
             }
             else
             {
                 var alias = Path.GetFileNameWithoutExtension(relPath);
                 var target = string.Format("* as {0}", alias);
-                result = new RtImport() { From = relPath, Target = target };
+                result = new RtImport() { From = relPath, Target = target, IsTypeOnly = typeOnly };
                 References.AddImport(result);
             }
             return result;

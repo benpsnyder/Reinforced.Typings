@@ -122,5 +122,35 @@ namespace Reinforced.Typings.Attributes
         /// Gets or sets whether RT must automatically treat methods returning Task as async methods
         /// </summary>
         public bool AutoAsync { get; set; }
+
+        /// <summary>
+        /// Honour System.Text.Json attributes (JsonPropertyName, JsonIgnore, JsonPropertyOrder, JsonStringEnumConverter, JsonStringEnumMemberName, JsonPolymorphic/JsonDerivedType). Attributes are detected by full name, so no System.Text.Json reference is needed. Default false.
+        /// </summary>
+        public bool UseSystemTextJson { get; set; }
+
+        /// <summary>
+        /// Property naming policy that mirrors System.Text.Json's JsonNamingPolicy. Applies to properties without an explicit name and takes precedence over CamelCaseForProperties. Default None.
+        /// </summary>
+        public JsonNamingPolicyKind JsonNamingPolicy { get; set; }
+
+        /// <summary>
+        /// Emit "import type" for imports generated for types exported as interfaces (module mode). Default false.
+        /// </summary>
+        public bool UseTypeImports { get; set; }
+
+        /// <summary>
+        /// Emit enums as union types of their values (string or number literals) instead of TypeScript enums. Default false.
+        /// </summary>
+        public bool EnumsAsUnionTypes { get; set; }
+
+        /// <summary>
+        /// Emit exported properties and fields as readonly. Default false.
+        /// </summary>
+        public bool ReadonlyProperties { get; set; }
+
+        /// <summary>
+        /// Distinguish optional from nullable: nullable types are emitted as "T | null" and stay required; "?" is reserved for members that may be absent (forced optional, or JsonIgnore WhenWritingNull/WhenWritingDefault). Takes precedence over AutoOptionalProperties for nullability. Default false.
+        /// </summary>
+        public bool StrictNullability { get; set; }
     }
 }

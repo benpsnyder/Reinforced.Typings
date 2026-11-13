@@ -64,6 +64,11 @@ namespace Reinforced.Typings.Ast.Dependency
         /// </summary>
         public bool IsRequire { get; set; }
 
+        /// <summary>
+        /// When true, the import is written as "import type" (only for imports generated for types exported as interfaces)
+        /// </summary>
+        public bool IsTypeOnly { get; set; }
+
         /// <inheritdoc />
         public override IEnumerable<RtNode> Children { get { yield break; } }
 

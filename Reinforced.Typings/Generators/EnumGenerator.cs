@@ -45,6 +45,9 @@ namespace Reinforced.Typings.Generators
                 result.IsConst = ea.IsConst;
                 stringInit = ea.UseString;
             }
+            var stj = Context.Global.UseSystemTextJson;
+            if (stj && SystemTextJson.IsStringEnum(element)) stringInit = true;
+            result.IsUnionType = Context.Global.EnumsAsUnionTypes;
             List<RtEnumValue> valuesResult = new List<RtEnumValue>();
             for (var index = 0; index < names.Length; index++)
             {
@@ -69,7 +72,9 @@ namespace Reinforced.Typings.Generators
 
                     if (stringInit)
                     {
+                        var jsonName = stj ? SystemTextJson.GetEnumMemberName(fieldItself) : null;
                         if (attr != null && !string.IsNullOrEmpty(attr.Initializer)) value.EnumValue = String.Concat("\"", attr.Initializer, "\"");
+                        else if (!string.IsNullOrEmpty(jsonName)) value.EnumValue = String.Concat("\"", jsonName.Replace("\\", "\\\\").Replace("\"", "\\\""), "\"");
                         else
                         {
                             value.EnumValue = String.Concat("\"", n, "\"");
