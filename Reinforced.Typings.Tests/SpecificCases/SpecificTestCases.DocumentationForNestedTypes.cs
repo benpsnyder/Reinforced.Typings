@@ -19,7 +19,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void DocumentationForNestedTypes()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	/** Some documentation for nested class */
 	export class SomeReallyNestedClass
 	{

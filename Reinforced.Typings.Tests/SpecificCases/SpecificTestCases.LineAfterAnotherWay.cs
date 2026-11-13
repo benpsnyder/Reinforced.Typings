@@ -41,7 +41,7 @@ export = {ns.Name};
         [Fact]
         public void LineAfterAnotherTest()
         {
-            const string result = @"module Reinforced.Typings.Tests.SpecificCases {
+            const string result = @"namespace Reinforced.Typings.Tests.SpecificCases {
 	export enum TestEnum2 {
 		
 		// Lick the belly!

@@ -45,6 +45,9 @@ namespace Reinforced.Typings.Generators
                 result.IsConst = ea.IsConst;
                 stringInit = ea.UseString;
             }
+            var stj = Context.Global.UseSystemTextJson;
+            if (stj && SystemTextJson.IsStringEnum(element)) stringInit = true;
+            result.IsUnionType = Context.Global.EnumsAsUnionTypes;
             List<RtEnumValue> valuesResult = new List<RtEnumValue>();
             for (var index = 0; index < names.Length; index++)
             {
@@ -64,12 +67,16 @@ namespace Reinforced.Typings.Generators
                     RtEnumValue value = new RtEnumValue
                     {
                         EnumValueName = n,
-                        EnumValue = Convert.ToInt64(v).ToString()
+                        // Format in the enum's underlying type: ulong values above long.MaxValue
+                        // (upstream #221) and negative values of signed enums both stay exact.
+                        EnumValue = Convert.ToString(Convert.ChangeType(v, Enum.GetUnderlyingType(element), System.Globalization.CultureInfo.InvariantCulture), System.Globalization.CultureInfo.InvariantCulture)
                     };
 
                     if (stringInit)
                     {
+                        var jsonName = stj ? SystemTextJson.GetEnumMemberName(fieldItself) : null;
                         if (attr != null && !string.IsNullOrEmpty(attr.Initializer)) value.EnumValue = String.Concat("\"", attr.Initializer, "\"");
+                        else if (!string.IsNullOrEmpty(jsonName)) value.EnumValue = String.Concat("\"", jsonName.Replace("\\", "\\\\").Replace("\"", "\\\""), "\"");
                         else
                         {
                             value.EnumValue = String.Concat("\"", n, "\"");

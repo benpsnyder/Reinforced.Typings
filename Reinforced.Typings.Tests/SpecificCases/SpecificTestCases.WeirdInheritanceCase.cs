@@ -23,7 +23,7 @@ export class DerivedClass implements IBaseClass
 	public DoSomething() : void { } 
 	public GetName() : string
 	{
-		return null;
+		return null!;
 	}
 }
 ";

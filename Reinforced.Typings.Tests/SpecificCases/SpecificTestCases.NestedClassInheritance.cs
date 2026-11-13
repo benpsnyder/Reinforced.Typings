@@ -32,7 +32,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void NestedClassInheritance()
         {
             const string result = @"
-module TestB {
+namespace TestB {
 	export interface ISomeDerivedClass extends TestB.ITestParentClassA
 	{
 		OtherId: number;

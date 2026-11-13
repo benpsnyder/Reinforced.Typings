@@ -2,7 +2,7 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
-module E2E.Consumer.Models {
+namespace E2E.Consumer.Models {
 	/** Lifecycle state of an order. */
 	export enum OrderStatus {
 		/** Created but not yet submitted. */
@@ -56,7 +56,7 @@ module E2E.Consumer.Models {
 		*/
 		public load(id: string) : E2E.Consumer.Models.IOrder
 		{
-			return null;
+			return null!;
 		}
 		/**
 		* Lists orders.
@@ -66,7 +66,7 @@ module E2E.Consumer.Models {
 		*/
 		public list(page: number, status?: E2E.Consumer.Models.OrderStatus) : E2E.Consumer.Models.IPage<E2E.Consumer.Models.IOrder>
 		{
-			return null;
+			return null!;
 		}
 		/**
 		* Cancels an order.

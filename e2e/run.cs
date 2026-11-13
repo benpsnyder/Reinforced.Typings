@@ -7,10 +7,16 @@
 // Usage:
 //   dotnet run e2e/run.cs -- --feed <dir with .nupkg> --version <version>
 //       [--frameworks net10.0,net11.0,net481] [--msbuild <path to MSBuild.exe>]
-//       [--work <scratch dir>] [--update-golden]
+//       [--work <scratch dir>] [--update-golden] [--bypass-run] [--modern-run] [--check-run]
 //
 // --msbuild additionally builds the net481 consumer with Visual Studio's MSBuild.exe
 // (MSBuildRuntimeType=Full), the path that loads build/net472 of the package.
+// --modern-run adds a build with -p:RtE2EVariant=modern (System.Text.Json attributes, the 3.1.0 output
+// options and the Effect Schema emitter), compared with golden/consumer.modern.ts and
+// golden/consumer.modern.schema.ts. --check-run rebuilds the first consumer to verify that unchanged
+// output keeps its timestamp, that check mode (RtCheckMode=true) passes on current output and fails
+// with error RT0019 (RTE0019) on drift without touching the file, and that RtSkipUnchanged skips an
+// unchanged generation, honours RtForce and regenerates an edited output.
 // Exit code is the number of failed builds (0 = all passed).
 
 using System.Diagnostics;
@@ -19,18 +25,42 @@ using System.Text;
 var options = Options.Parse(args);
 var e2eDir = Path.GetDirectoryName(Path.GetFullPath(ThisFile()))!;
 var consumerDir = Path.Combine(e2eDir, "Consumer");
-var goldenFile = Path.Combine(e2eDir, "golden", "consumer.ts");
+var goldenDir = Path.Combine(e2eDir, "golden");
 var work = Path.GetFullPath(options.Work ?? Path.Combine(Path.GetTempPath(), "rt-e2e"));
 
 if (Directory.Exists(work)) Directory.Delete(work, recursive: true);
 Directory.CreateDirectory(work);
 var packages = Path.Combine(work, "packages");
 
-var runs = new List<(string Label, string Framework, string? MsBuild, string[] Extra)>();
-foreach (var fw in options.Frameworks) runs.Add(($"dotnet-{fw}", fw, null, []));
-if (options.MsBuild is not null) runs.Add(("msbuild-net481", "net481", options.MsBuild, []));
+var defaultGolden = new[] { ("consumer.ts", "consumer.ts") };
+var runs = new List<(string Label, string Framework, string? MsBuild, string[] Extra, (string Generated, string Golden)[] Files)>();
+foreach (var fw in options.Frameworks) runs.Add(($"dotnet-{fw}", fw, null, [], defaultGolden));
+if (options.MsBuild is not null) runs.Add(("msbuild-net481", "net481", options.MsBuild, [], defaultGolden));
 // Same consumer with the TypeScript-bypass task enabled (defect 8 regression check).
-if (options.Bypass) runs.Add(($"bypass-{options.Frameworks[0]}", options.Frameworks[0], null, ["-p:RtBypassTypeScriptCompilation=true"]));
+if (options.Bypass) runs.Add(($"bypass-{options.Frameworks[0]}", options.Frameworks[0], null, ["-p:RtBypassTypeScriptCompilation=true"], defaultGolden));
+// Upstream #313/#231: TypeScriptTarget set without the TypeScript MSBuild targets must not fail (MSB4057);
+// with them (a stub CompileTypeScript), Reinforced.Typings must still run CompileTypeScript.
+foreach (var tsFw in options.Frameworks.Where(f => !f.StartsWith("net4")).Take(1))
+{
+    runs.Add(($"tstarget-{tsFw}", tsFw, null, ["-p:TypeScriptTarget=ES2020"], defaultGolden));
+    runs.Add(($"tsstub-{tsFw}", tsFw, null, ["-p:TypeScriptTarget=ES2020", "-p:RtE2ETypeScriptStub=true"],
+        [("consumer.ts", "consumer.ts"), ("ts-compiled.txt", "ts-stub-marker.txt")]));
+}
+// System.Text.Json needs .NET, so the modern variant uses the first non-.NET Framework target.
+var modernFw = options.Frameworks.FirstOrDefault(f => !f.StartsWith("net4"));
+if (options.Modern && modernFw is not null)
+{
+    runs.Add(($"modern-{modernFw}", modernFw, null,
+        ["-p:RtE2EVariant=modern", "-p:RtSuppress=RTW0016%3BRTW0017"],
+        [("consumer.ts", "consumer.modern.ts"), ("consumer.schema.ts", "consumer.modern.schema.ts")]));
+}
+// Upstream #284/#206: a System.Text.Json package newer than the net10.0 runtime's (11.0.0) failed with RT0999.
+if (options.Modern && options.Frameworks.Contains("net10.0"))
+{
+    runs.Add(("stj11-net10.0", "net10.0", null,
+        ["-p:RtE2EVariant=modern", "-p:RtSuppress=RTW0016%3BRTW0017", "-p:RtE2ESystemTextJson=11.0.0"],
+        [("consumer.ts", "consumer.modern.ts"), ("consumer.schema.ts", "consumer.modern.schema.ts")]));
+}
 
 var failures = 0;
 var results = new List<string>();
@@ -73,29 +103,38 @@ foreach (var run in runs)
     var (exit, output) = Run(psi);
     File.WriteAllText(log, output);
 
-    var generated = Path.Combine(dir, "generated", "consumer.ts");
-    string verdict;
-    if (exit != 0)
+    var verdict = exit != 0 ? $"FAIL build exited {exit}" : "PASS identical to golden";
+    foreach (var (genName, goldName) in run.Files)
     {
-        verdict = $"FAIL build exited {exit}";
+        if (!verdict.StartsWith("PASS")) break;
+        var generated = Path.Combine(dir, "generated", genName);
+        var golden = Path.Combine(goldenDir, goldName);
+        if (!File.Exists(generated))
+        {
+            verdict = $"FAIL build succeeded but generated/{genName} was not written";
+        }
+        else if (options.UpdateGolden)
+        {
+            Directory.CreateDirectory(goldenDir);
+            File.Copy(generated, golden, overwrite: true);
+            verdict = "PASS (golden updated)";
+        }
+        else if (!File.Exists(golden))
+        {
+            verdict = "FAIL no golden file at " + golden;
+        }
+        else
+        {
+            var v = Compare(File.ReadAllBytes(golden), File.ReadAllBytes(generated));
+            verdict = v.StartsWith("PASS") ? (run.Files.Length > 1 ? $"PASS identical to {run.Files.Length} golden files" : v) : $"{v} ({goldName})";
+        }
     }
-    else if (!File.Exists(generated))
+
+    if (verdict.StartsWith("PASS") && options.Check && run.Label == $"dotnet-{options.Frameworks[0]}" && run.MsBuild is null)
     {
-        verdict = "FAIL build succeeded but generated/consumer.ts was not written";
-    }
-    else if (options.UpdateGolden)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(goldenFile)!);
-        File.Copy(generated, goldenFile, overwrite: true);
-        verdict = "PASS (golden updated)";
-    }
-    else if (!File.Exists(goldenFile))
-    {
-        verdict = "FAIL no golden file at " + goldenFile;
-    }
-    else
-    {
-        verdict = Compare(File.ReadAllBytes(goldenFile), File.ReadAllBytes(generated));
+        var check = CheckRun(psi, dir, work);
+        results.Add($"{"check-" + run.Framework,-18} {check}");
+        if (!check.StartsWith("PASS")) failures++;
     }
 
     if (!verdict.StartsWith("PASS"))
@@ -110,8 +149,62 @@ foreach (var run in runs)
 Console.WriteLine();
 Console.WriteLine($"Reinforced.Typings.vNext {options.Version} end-to-end results:");
 foreach (var r in results) Console.WriteLine("  " + r);
-Console.WriteLine($"{runs.Count - failures} passed, {failures} failed. Logs: {work}");
+Console.WriteLine($"{results.Count - failures} passed, {failures} failed. Logs: {work}");
 return failures;
+
+// Rebuilds a consumer that just passed: unchanged output keeps its timestamp, check mode passes on
+// current output, and check mode fails with RTE0019 on drift without modifying the file.
+static string CheckRun(ProcessStartInfo template, string dir, string work)
+{
+    var target = Path.Combine(dir, "generated", "consumer.ts");
+    var old = new DateTime(2001, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    File.SetLastWriteTimeUtc(target, old);
+
+    ProcessStartInfo Rebuild(params string[] extra)
+    {
+        var psi = new ProcessStartInfo(template.FileName) { WorkingDirectory = template.WorkingDirectory };
+        foreach (var a in template.ArgumentList) psi.ArgumentList.Add(a);
+        psi.ArgumentList.Add("--no-incremental");
+        foreach (var a in extra) psi.ArgumentList.Add(a);
+        foreach (var kv in template.Environment) psi.Environment[kv.Key] = kv.Value;
+        return psi;
+    }
+
+    var (exit, output) = Run(Rebuild());
+    File.WriteAllText(Path.Combine(work, "check-rebuild.log"), output);
+    if (exit != 0) return $"FAIL rebuild exited {exit}";
+    if (File.GetLastWriteTimeUtc(target) != old) return "FAIL unchanged consumer.ts was rewritten (timestamp changed)";
+
+    (exit, output) = Run(Rebuild("-p:RtCheckMode=true"));
+    File.WriteAllText(Path.Combine(work, "check-current.log"), output);
+    if (exit != 0) return $"FAIL check mode on current output exited {exit}";
+
+    // RtSkipUnchanged: the first run writes the stamp, the second skips rtcli, an edited output regenerates.
+    var current = File.ReadAllText(target);
+    (exit, output) = Run(Rebuild("-p:RtSkipUnchanged=true"));
+    File.WriteAllText(Path.Combine(work, "skip-first.log"), output);
+    if (exit != 0) return $"FAIL RtSkipUnchanged first run exited {exit}";
+    (exit, output) = Run(Rebuild("-p:RtSkipUnchanged=true", "-v:n"));
+    File.WriteAllText(Path.Combine(work, "skip-second.log"), output);
+    if (exit != 0 || !output.Contains("generation; skipped")) return "FAIL RtSkipUnchanged did not skip an unchanged generation";
+    (exit, output) = Run(Rebuild("-p:RtSkipUnchanged=true", "-p:RtForce=true", "-v:n"));
+    File.WriteAllText(Path.Combine(work, "skip-force.log"), output);
+    if (exit != 0 || output.Contains("generation; skipped")) return "FAIL RtForce=true did not force generation";
+    File.WriteAllText(target, "// edited\n");
+    (exit, output) = Run(Rebuild("-p:RtSkipUnchanged=true", "-v:n"));
+    File.WriteAllText(Path.Combine(work, "skip-edited.log"), output);
+    if (exit != 0 || output.Contains("generation; skipped") || File.ReadAllText(target) != current)
+        return "FAIL RtSkipUnchanged skipped although the output had been edited";
+
+    var drifted = File.ReadAllText(target) + "// drift\n";
+    File.WriteAllText(target, drifted);
+    (exit, output) = Run(Rebuild("-p:RtCheckMode=true"));
+    File.WriteAllText(Path.Combine(work, "check-drift.log"), output);
+    if (exit == 0) return "FAIL check mode passed although consumer.ts had drifted";
+    if (!output.Contains("error RT0019")) return "FAIL check mode failed without error RT0019";
+    if (File.ReadAllText(target) != drifted) return "FAIL check mode modified consumer.ts";
+    return "PASS timestamp kept; skip/force/edit; check mode passes, then fails on drift (error RT0019)";
+}
 
 static string Compare(byte[] expected, byte[] actual)
 {
@@ -176,7 +269,7 @@ static (int Exit, string Output) Run(ProcessStartInfo psi)
 
 static string ThisFile([System.Runtime.CompilerServices.CallerFilePath] string path = "") => path;
 
-sealed record Options(string Feed, string Version, string[] Frameworks, string? MsBuild, string? Work, bool UpdateGolden, bool Bypass)
+sealed record Options(string Feed, string Version, string[] Frameworks, string? MsBuild, string? Work, bool UpdateGolden, bool Bypass, bool Modern, bool Check)
 {
     public static Options Parse(string[] args)
     {
@@ -184,6 +277,8 @@ sealed record Options(string Feed, string Version, string[] Frameworks, string? 
         var frameworks = new[] { "net10.0", "net11.0", "net481" };
         var update = false;
         var bypass = false;
+        var modern = false;
+        var check = false;
         for (var i = 0; i < args.Length; i++)
         {
             switch (args[i])
@@ -195,10 +290,12 @@ sealed record Options(string Feed, string Version, string[] Frameworks, string? 
                 case "--work": work = args[++i]; break;
                 case "--update-golden": update = true; break;
                 case "--bypass-run": bypass = true; break;
+                case "--modern-run": modern = true; break;
+                case "--check-run": check = true; break;
                 default: throw new ArgumentException("Unknown argument " + args[i]);
             }
         }
         if (feed is null || version is null) throw new ArgumentException("--feed and --version are required");
-        return new Options(feed, version, frameworks, msbuild, work, update, bypass);
+        return new Options(feed, version, frameworks, msbuild, work, update, bypass, modern, check);
     }
 }

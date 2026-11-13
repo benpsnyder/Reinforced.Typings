@@ -65,8 +65,13 @@
 			DocumentationFilePath="$(MSBuildProjectDirectory)\$(DocumentationFile)"			
 			ConfigurationMethod="$(RtConfigurationMethod)"
 			SuppressedWarnings="$(RtSuppress)"
+			CheckMode="$(RtCheckMode)"
+			EffectSchemaFile="$(RtEffectSchemaFile)"
+			SkipUnchanged="$(RtSkipUnchanged)"
+			Force="$(RtForce)"
+			StampFile="$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'Reinforced.Typings.stamp'))"
 		/>
-		<MSBuild Projects="$(MSBuildProjectFullPath)" Properties="INeedThis=JustToRebuildTypescripts;BuildingProject=true" Targets="CompileTypeScript" Condition="'$(TypeScriptTarget)' != '' AND '@(ConfigFiles)' == ''" />
-		<MSBuild Projects="$(MSBuildProjectFullPath)" Properties="INeedThis=JustToRebuildTypescripts;BuildingProject=true" Targets="CompileTypeScriptWithTSConfig" Condition="'$(TypeScriptTarget)' != '' AND '@(ConfigFiles)' != ''" />
+		<MSBuild Projects="$(MSBuildProjectFullPath)" Properties="INeedThis=JustToRebuildTypescripts;BuildingProject=true" Targets="CompileTypeScript" SkipNonexistentTargets="true" Condition="'$(TypeScriptTarget)' != '' AND '@(ConfigFiles)' == ''" />
+		<MSBuild Projects="$(MSBuildProjectFullPath)" Properties="INeedThis=JustToRebuildTypescripts;BuildingProject=true" Targets="CompileTypeScriptWithTSConfig" SkipNonexistentTargets="true" Condition="'$(TypeScriptTarget)' != '' AND '@(ConfigFiles)' != ''" />
 	</Target>
 </Project>

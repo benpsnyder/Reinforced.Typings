@@ -9,7 +9,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void ExportOrderTest1()
         {
             const string result1 = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
     export interface ITestClass
 	{
 		String: string;

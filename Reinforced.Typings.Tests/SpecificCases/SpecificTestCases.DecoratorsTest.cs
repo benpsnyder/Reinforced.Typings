@@ -28,7 +28,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void DecoratorsTest()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	@sealed export class ClassWithMethods
 	{
 		@bind public Int: number;

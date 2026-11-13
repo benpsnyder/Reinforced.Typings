@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    Test fixture for upstream issues #313/#231: stands in for the TypeScript MSBuild targets
+    (Microsoft.TypeScript.MSBuild). Imported only with -p:RtE2ETypeScriptStub=true, to prove that
+    Reinforced.Typings still invokes CompileTypeScript when the project really has it.
+  -->
+  <Target Name="CompileTypeScript">
+    <!-- An empty marker file; the e2e compares it with golden/ts-stub-marker.txt (also empty). -->
+    <Touch Files="$(MSBuildProjectDirectory)/generated/ts-compiled.txt" AlwaysCreate="true" />
+  </Target>
+</Project>

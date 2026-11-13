@@ -20,6 +20,34 @@ namespace Reinforced.Typings.Generators
         /// <param name="types">Types list</param>
         /// <param name="namespaceName">Namespace name</param>
         /// <param name="resolver">Type resolver</param>
+        /// <summary>
+        /// Generates the discriminated union type alias for a System.Text.Json polymorphic base type
+        /// </summary>
+        /// <param name="type">Base type</param>
+        /// <param name="resolver">Type resolver</param>
+        /// <param name="export">Whether the alias is exported</param>
+        /// <returns>Union node, or null when the type declares no derived types</returns>
+        protected virtual RtDiscriminatedUnion GeneratePolymorphicUnion(Type type, TypeResolver resolver, bool export)
+        {
+            var derived = SystemTextJson.GetDerivedTypes(type);
+            if (derived.Count == 0) return null;
+            var members = new List<RtDiscriminatedUnionMember>();
+            foreach (var d in derived)
+            {
+                var bp = Context.Project.Blueprint(d.DerivedType, false);
+                if (bp == null || (bp.TypeAttribute == null && bp.ThirdParty == null))
+                {
+                    Context.AddWarning(Exceptions.ErrorMessages.RTW0015_DerivedTypeNotExported.Warn(d.DerivedType.FullName, type.FullName));
+                    continue;
+                }
+                members.Add(new RtDiscriminatedUnionMember(d.DerivedType, resolver.ResolveTypeName(d.DerivedType), d.Discriminator));
+            }
+            var name = Context.Project.Blueprint(type).GetName().TypeName + "Union";
+            var result = new RtDiscriminatedUnion(name, SystemTextJson.GetDiscriminatorPropertyName(type), members, export);
+            result.Order = (Context.Project.Blueprint(type).GetOrder());
+            return result;
+        }
+
         public virtual RtNamespace Generate(IEnumerable<Type> types, string namespaceName, TypeResolver resolver)
         {
             RtNamespace ns = new RtNamespace();
@@ -49,6 +77,11 @@ namespace Reinforced.Typings.Generators
 
 
                 if (member!=null) ns.CompilationUnits.Add(member);
+                if (member != null && Context.Global.UseSystemTextJson)
+                {
+                    var union = GeneratePolymorphicUnion(type, resolver, Context.Global.UseModules || !ns.IsAmbientNamespace);
+                    if (union != null) ns.CompilationUnits.Add(union);
+                }
 #if DEBUG
                 Console.WriteLine("Exported {0}", type);
 #endif

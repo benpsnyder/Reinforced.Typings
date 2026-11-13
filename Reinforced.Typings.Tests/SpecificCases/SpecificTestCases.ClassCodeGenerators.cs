@@ -84,7 +84,7 @@ public class AdditionalEnumGenerator : EnumGenerator
 DoSomething() : void { } 
 GetName(arg: number) : string
 {
-	return null;
+	return null!;
 }
 enum SomeEnum { 
 	One = 0, 

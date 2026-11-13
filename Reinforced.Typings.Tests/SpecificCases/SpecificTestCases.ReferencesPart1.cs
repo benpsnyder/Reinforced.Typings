@@ -26,19 +26,19 @@ namespace Reinforced.Typings.Tests.SpecificCases
 ///<reference path=""../../jquery.d.ts""/>
 ///<reference path=""../Fluently/File3.ts""/>
 
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export class SomeReferencingType
 	{		
 	}
 }";
             const string file2 = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export class SomeIndirectlyReferencedClass
 	{
 	}
 }";
             const string file3 = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export class SomeFluentReferencedType
 	{
 	}

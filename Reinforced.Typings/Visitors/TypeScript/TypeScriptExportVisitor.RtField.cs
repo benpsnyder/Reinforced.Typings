@@ -14,9 +14,11 @@ namespace Reinforced.Typings.Visitors.TypeScript
                 Decorators(node);
                 Modifiers(node);
             }
+            if (node.IsReadonly) Write("readonly ");
             Visit(node.Identifier);
             Write(": ");
             Visit(node.Type);
+            if (node.IsNullableType) Write(" | null");
             if (!string.IsNullOrEmpty(node.InitializationExpression))
             {
                 Write(" = ");

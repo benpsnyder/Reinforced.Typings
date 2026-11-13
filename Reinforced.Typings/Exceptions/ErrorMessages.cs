@@ -98,6 +98,11 @@ namespace Reinforced.Typings.Exceptions
         /// Contradictious export instructions: class {0} cannot be exported as {1} because it is already exported as something else
         /// </summary>
         public static readonly ErrorMessage RTE0018_FluentThirdParty = new ErrorMessage(0018, "Contradictious export instructions: class {0} is already being exported as third-party, but you try to reexport it as {1}", "Fluent configuration");
+
+        /// <summary>
+        /// Check mode: generated output differs from the files on disk
+        /// </summary>
+        public static readonly ErrorMessage RTE0019_CheckModeDrift = new ErrorMessage(0019, "Generated TypeScript is out of date: {0} file(s) differ from the freshly generated output: {1}. Rebuild without check mode and commit the result.", "Check mode");
         #endregion
 
         #region Warnings
@@ -135,6 +140,21 @@ namespace Reinforced.Typings.Exceptions
         /// Error parsering XMLDOC file {0}: {1}
         /// </summary>
         public static readonly ErrorMessage RTW0007_InvalidDictionaryKey = new ErrorMessage(0007, "{0} is not valid type for JS object key (original type {1})", "Type resolvation");
+
+        /// <summary>
+        /// [JsonDerivedType] target is not exported
+        /// </summary>
+        public static readonly ErrorMessage RTW0015_DerivedTypeNotExported = new ErrorMessage(0015, "[JsonDerivedType] {0} of {1} is not exported, so it is left out of the discriminated union", "System.Text.Json");
+
+        /// <summary>
+        /// Effect Schema: TypeScript type has no Effect Schema equivalent
+        /// </summary>
+        public static readonly ErrorMessage RTW0016_EffectSchemaUnknownType = new ErrorMessage(0016, "Effect Schema: no schema for TypeScript type '{0}' of {1}; Schema.Unknown emitted", "Effect Schema");
+
+        /// <summary>
+        /// Effect Schema: type skipped
+        /// </summary>
+        public static readonly ErrorMessage RTW0017_EffectSchemaTypeSkipped = new ErrorMessage(0017, "Effect Schema: {0} is not emitted: {1}", "Effect Schema");
 
         /// <summary>
         /// Error of type loding

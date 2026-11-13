@@ -18,7 +18,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void GenericGuidDictionary()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IA
 	{
         GuidDictionary: { [key:string]: string };

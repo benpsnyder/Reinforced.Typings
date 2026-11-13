@@ -39,8 +39,16 @@ namespace Reinforced.Typings.Generators
         public override RtField GenerateNode(MemberInfo element, RtField result, TypeResolver resolver)
         {
             if (Context.CurrentBlueprint.IsIgnored(element)) return null;
+            var stj = Context.Global.UseSystemTextJson;
+            var jsonIgnore = stj ? SystemTextJson.GetIgnore(element) : JsonIgnoreKind.None;
+            if (jsonIgnore == JsonIgnoreKind.Always) return null;
             result.IsStatic = element.IsStatic();
             result.Order = Context.CurrentBlueprint.GetOrder(element);
+            if (stj && result.Order == 0)
+            {
+                var jsonOrder = SystemTextJson.GetOrder(element);
+                if (jsonOrder.HasValue) result.Order = jsonOrder.Value;
+            }
 
             var doc = Context.Documentation.GetDocumentationMember(element);
             if (doc != null)
@@ -79,12 +87,39 @@ namespace Reinforced.Typings.Generators
             
             if (!Context.SpecialCase)
             {
-                propName.IsNullable = HasToBeNullable(tp, t) 
-                                      || Context.Global.AutoOptionalProperties && element.IsReferenceForcedNullable();
+                if (Context.Global.StrictNullability)
+                {
+                    // Optional ("?") only when the member may be absent; nullability goes to "T | null".
+                    propName.IsNullable = tp != null && tp.NilForceNullable.HasValue && tp.NilForceNullable.Value;
+                    result.IsNullableType = t.IsNullable() || element.IsReferenceForcedNullable();
+                }
+                else
+                {
+                    propName.IsNullable = HasToBeNullable(tp, t)
+                                          || Context.Global.AutoOptionalProperties && element.IsReferenceForcedNullable();
+                }
+                if (jsonIgnore == JsonIgnoreKind.WhenWriting) propName.IsNullable = true;
             }
+            result.IsReadonly = Context.Global.ReadonlyProperties;
 
             if (type == null) type = resolver.ResolveTypeName(t);
             
+            if (!isNameOverridden && stj)
+            {
+                var jsonName = SystemTextJson.GetPropertyName(element);
+                if (!string.IsNullOrEmpty(jsonName))
+                {
+                    propName.IdentifierName = jsonName;
+                    isNameOverridden = true;
+                }
+            }
+
+            if (!isNameOverridden && Context.Global.JsonNamingPolicy != JsonNamingPolicyKind.None)
+            {
+                propName.IdentifierName = SystemTextJson.ConvertName(Context.Global.JsonNamingPolicy, propName.IdentifierName);
+                isNameOverridden = true;
+            }
+
             if (!isNameOverridden)
             {
                 if (element is PropertyInfo)

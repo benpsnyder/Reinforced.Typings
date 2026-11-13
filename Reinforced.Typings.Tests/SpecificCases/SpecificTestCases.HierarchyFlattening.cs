@@ -35,7 +35,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void HierarchyFlattening()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	export interface IA
 	{
 		SomeProperty: string;

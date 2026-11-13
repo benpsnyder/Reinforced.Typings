@@ -159,24 +159,20 @@ So no unmerged feature work exists outside `fork`. The question is which parts o
 
 7. **A file with a Windows drive letter in its path is committed** (`d403e53`): `Reinforced.Typings.Tests/w:/Work/Reinforced/Typings/Reinforced.Typings/Reinforced.Typings.Tests/Reinforced.Typings.Tests.Dev.xml`. It is a stray XML-doc output. A path containing `:` cannot be checked out on Windows, which matters because 3.0.0 needs a Windows CI job. Delete it and the sibling `Reinforced.Typings.Tests.Dev.xml` in Phase 0, and ignore `*.Dev.xml`.
 
-## 6. Deferred to 3.1.0
+## 6. Deferred
 
-None of the following is in 3.0.0.
+None of the following is in 3.0.0. Items delivered in 3.1.0 are listed in the 3.1.0 record in section 7; what remains is deferred to a later release.
 
 ### Performance
 
-1. Compare content and do not rewrite generated files that have not changed.
-2. Skip generation entirely when the assembly identity and settings are unchanged.
-3. A reusable generator server process shared across projects, only if measurement on a large solution justifies it.
-4. Longer term, a Roslyn incremental generator for attribute-driven configuration.
+1. A reusable generator server process shared across projects, only if measurement on a large solution justifies it.
+2. Longer term, a Roslyn incremental generator for attribute-driven configuration.
 
 ### Features
 
-1. A check mode that fails the build when committed output differs.
-2. Honour System.Text.Json attributes: `JsonPropertyName`, `JsonIgnore`, naming policy, string enums, `JsonDerivedType` as discriminated unions.
-3. An Effect Schema emitter alongside the types.
-4. Modern TypeScript output options: `import type`, string-literal unions, `readonly`, optional versus nullable.
-5. A standalone `dotnet tool` with watch mode.
+1. A standalone `dotnet tool` with watch mode.
+2. Effect Schema emitter: generic types (as schema functions) and recursive types (`Schema.suspend` with declared types) are not emitted yet.
+3. System.Text.Json: converters on individual properties and options-level settings (`JsonSerializerOptions` naming policy, converters) are not visible to reflection and are not honoured.
 
 ### Phase 3 items dropped from 3.0.0
 
@@ -227,3 +223,29 @@ Measured with `e2e/measure.cs` (40 runs after 3 warm-ups per tool, back to back;
 ### Phase 4: package
 
 `dotnet pack Reinforced.Typings/Reinforced.Typings.csproj -c Release -o artifacts` produces `Reinforced.Typings.vNext.3.0.0.nupkg` and `.snupkg`: `lib/` and `tools/` for net481, net10.0 and net11.0, the task in `build/net472` and `build/netstandard2.0`, empty dependency groups for the three frameworks, no `frameworkAssemblies`, repository URL and commit, README, deterministic build. Cake, `nuget.exe`, the nuspecs and the Docker scaffolding are removed. The e2e consumer builds with `-warnaserror` against it on net10.0 and net11.0 (macOS) with no extra references; net481 is checked by the Windows CI job. Nothing is published.
+
+### 3.1.0 (2026-11-12)
+
+Branch `feat/3.1` from `master` after 3.0.0. Every new behaviour is behind an option that defaults to off, except item 1, which changes no content. With no new option set, the e2e output was byte-identical to the 3.0.0 golden on net10.0 and net11.0 (macOS) and the 3.0.0 unit tests passed unchanged; the TypeScript 6/7 decision at the end of this record later changed two things in the default output.
+
+| Item | What was done | Option |
+| --- | --- | --- |
+| Performance 1: no rewrite of unchanged files | Nothing did this before: `DeployTempFiles` always deleted and moved. It now compares the temporary file with the target and keeps the target (and its timestamp) when identical. Unit tests, and the e2e `--check-run` rebuild verifies the timestamp survives. | always on |
+| Feature 1: check mode | Generates through the same temporary files, compares, deletes them and fails with RTE0019 (`error RT0019` in the build log) listing the differing or missing files; nothing is written. | `RtCheckMode`, rtcli `CheckMode` |
+| Feature 2: System.Text.Json | Attributes are read with `CustomAttributeData` by full name: `JsonPropertyName`, `JsonIgnore` (Always drops; WhenWritingNull/WhenWritingDefault make the member optional; Never and WhenReading do not change shape), `JsonPropertyOrder`, `JsonConverter(JsonStringEnumConverter)` on enums, `JsonStringEnumMemberName`, `JsonPolymorphic`/`JsonDerivedType` as a union alias. A naming-policy port of System.Text.Json's camel/snake/kebab algorithms, unit-tested against `JsonNamingPolicy` on net10.0/net11.0. net481 tests use look-alike attributes with the same full names. | `UseSystemTextJson`, `JsonNamingPolicy` |
+| Feature 4: modern output | `import type` for RT-generated imports of interface types, enums as union types, `readonly`, and `StrictNullability` (`T \| null` required versus `?` absent). Implemented as new properties on existing AST nodes (`RtField.IsReadonly`, `RtField.IsNullableType`, `RtEnum.IsUnionType`, `RtImport.IsTypeOnly`) so custom visitors keep compiling; the discriminated union is an `RtRaw` subclass for the same reason. | `UseTypeImports`, `EnumsAsUnionTypes`, `ReadonlyProperties`, `StrictNullability` |
+| Feature 3: Effect Schema emitter | `EffectSchemaEmitter` walks the generated AST of all files and writes one ES module (`import { Schema } from "effect"`): `Struct` with base-field spreads, `optionalKey`, `NullOr`, `Array`, `Record`, `Tuple`, `Literals`, `Union` for discriminated unions; bare-name const plus `Type`/`Encoded` aliases following the snyder-apps Effect Schema doctrine (bare name = schema and Type, `<Name>Encoded`, `optionalKey` default, `NullOr` for nullable, `Literals` instead of TS enums). Generic and recursive types are skipped (RTW0017); unmappable types become `Schema.Unknown` (RTW0016). The e2e "modern" golden module was type-checked with TypeScript 6.0.3 (`strict`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`) against `effect` 4.1.3 from snyder-apps' `node_modules` (its catalog version), with type-level assertions on the derived `Type`s and a negative control that fails as expected; `Schema.decodeUnknownResult` on the union and on an invalid customer behaved correctly under bun. | `RtEffectSchemaFile`, rtcli `EffectSchemaFile` |
+| Performance 2: skip unchanged generations | Implemented in the MSBuild task, not rtcli, so the process is not started at all. Key: content hash of source assemblies and XML docs; path, length and timestamp of references, task and tool; every rtcli setting; content hash of the current output. Stamp in `obj/`; deleted before each run and written only after success; never used in check mode. Kept opt-in because one input is not in the key: assemblies that rtcli resolves from the source folder without being references. | `RtSkipUnchanged`, `RtForce` |
+
+Measured (Apple M2 Ultra, macOS 27.2, .NET SDK 11.0.100, e2e consumer, `dotnet build --no-incremental` with MSBuild's performance summary, 20 alternating rebuilds each, 39 s in total): `RtCli` task time median 120.5 ms (min 111, max 229) without `RtSkipUnchanged`, median 4 ms (min 3, max 6) with it when nothing changed. This is per project per rebuild whose compiled assembly is unchanged; no solution-level measurement was taken. Performance item 1 was not timed: it removes a write rather than a computation, and its effect is the preserved timestamp, which the e2e verifies.
+
+Verified only by the Windows CI job, not locally: net481 unit tests (including the look-alike System.Text.Json attributes) and the net481/MSBuild.exe e2e runs. The modern e2e variant needs System.Text.Json and runs on net10.0 only (`--modern-run` picks the first non-net4x framework).
+
+Dropped: nothing that was started. Not attempted: the deferred items above.
+
+Owner decision after the upstream fixes: the 3.1.0 default output must compile under TypeScript 6 and 7. Two default changes, so 3.1.0 is no longer byte-identical to 3.0.0 by default:
+
+- `UseNamespaceKeyword` defaults to true. `module X {}` is error TS1540 in TypeScript 6.0.3 and 7.0.2 (and in `@typescript/typescript6` 6.0.2), not a warning, and `ignoreDeprecations: "6.0"` does not silence it. `UseNamespaceKeyword(false)` restores the old keyword. Modules mode already wrote `export namespace`; single-file and hierarchical `.ts` and `.d.ts` output now write `namespace` / `declare namespace`.
+- Stub method bodies of exported classes are `return null!;` (and `Promise.resolve(null!)`), which type-check under `strictNullChecks`; `return null;` was TS2322 for non-nullable return types.
+
+Golden type-check, strict, TypeScript 6.0.3 and 7.0.2 (errors per compiler, before, then after): `consumer.ts` 5 then 0 (3 TS1540, 2 TS2322); `consumer.modern.ts` 8 then 0 (6 TS1540, 2 TS2322); `consumer.modern.schema.ts` 0 then 0. The same check with the pinned CI packages (`@typescript/typescript6` 6.0.2, `typescript` 7.0.2, `effect` 4.1.3) is `e2e/typecheck.cs`, run by the Linux CI job.

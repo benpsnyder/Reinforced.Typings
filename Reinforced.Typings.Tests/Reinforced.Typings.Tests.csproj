@@ -21,6 +21,7 @@
   <ItemGroup>
     <!-- The task's tool selection rule has no MSBuild dependency, so it is compiled in and tested directly. -->
     <Compile Include="..\Reinforced.Typings.Integrate\ToolSelection.cs" Link="Integrate\ToolSelection.cs" />
+    <Compile Include="..\Reinforced.Typings.Integrate\GenerationStamp.cs" Link="Integrate\GenerationStamp.cs" />
   </ItemGroup>
 
   <ItemGroup>

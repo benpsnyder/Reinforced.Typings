@@ -70,6 +70,30 @@ namespace Reinforced.Typings
             
         }
 
+        /// <summary>
+        /// True for an explicit interface implementation ("string IFoo.Bar { get; }", "void IFoo.Run()").
+        /// Such members are private, reachable only through the interface, and their CLR names
+        /// ("Namespace.IFoo.Bar") are not valid TypeScript member names (upstream issue #250), so they
+        /// are never exported; the interface itself is exported on its own.
+        /// </summary>
+        /// <param name="member">Member</param>
+        public static bool IsExplicitInterfaceImplementation(this MemberInfo member)
+        {
+            if (member == null || member.Name.IndexOf('.') < 0) return false;
+            MethodInfo accessor = null;
+            var property = member as PropertyInfo;
+            if (property != null)
+            {
+                accessor = property.GetGetMethod(true) ?? property.GetSetMethod(true);
+            }
+            else
+            {
+                accessor = member as MethodInfo;
+            }
+            // The C# compiler emits explicit implementations as private, virtual, sealed methods.
+            return accessor != null && accessor.IsPrivate && accessor.IsVirtual && accessor.IsFinal;
+        }
+
         public static bool IsReferenceForcedNullable(this MemberInfo member)
         {
             byte[] nullableFlag = GetNullableAttributeValue(member);

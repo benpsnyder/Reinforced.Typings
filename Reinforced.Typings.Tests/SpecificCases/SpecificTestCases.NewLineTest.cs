@@ -11,7 +11,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         [Fact]
         public void NewLineTest_Default() {
             var newLine = Environment.NewLine;
-            string result = $"module Reinforced.Typings.Tests.SpecificCases {{{newLine}export interface ITestInterface{newLine}{{{newLine}Int: number;{newLine}String: string;{newLine}}}{newLine}}}{newLine}";
+            string result = $"namespace Reinforced.Typings.Tests.SpecificCases {{{newLine}export interface ITestInterface{newLine}{{{newLine}Int: number;{newLine}String: string;{newLine}}}{newLine}}}{newLine}";
             AssertConfiguration(s => {
                 s.Global(a => a.DontWriteWarningComment().TabSymbol(string.Empty).ReorderMembers());
                 s.ExportAsInterface<ITestInterface>().WithPublicProperties();
@@ -21,7 +21,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         [Fact]
         public void NewLineTest_Explicit() {
             const string newLine = "\n";
-            string result = $"module Reinforced.Typings.Tests.SpecificCases {{{newLine}export interface ITestInterface{newLine}{{{newLine}Int: number;{newLine}String: string;{newLine}}}{newLine}}}{newLine}";
+            string result = $"namespace Reinforced.Typings.Tests.SpecificCases {{{newLine}export interface ITestInterface{newLine}{{{newLine}Int: number;{newLine}String: string;{newLine}}}{newLine}}}{newLine}";
             var actual = AssertConfiguration(s => {
                 s.Global(a => a.DontWriteWarningComment().TabSymbol(string.Empty).NewLine(newLine).ReorderMembers());
                 s.ExportAsInterface<ITestInterface>().WithPublicProperties();

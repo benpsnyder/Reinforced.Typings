@@ -88,7 +88,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         public void InheritDocInterface()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	/**
 	* @inheritdoc
 	*/
@@ -117,7 +117,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void InheritDocInterfaceToClass()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	/**
 	* @inheritdoc
 	*/
@@ -155,7 +155,7 @@ module Reinforced.Typings.Tests.SpecificCases {
         public void InheritDocClass()
         {
             const string result = @"
-module Reinforced.Typings.Tests.SpecificCases {
+namespace Reinforced.Typings.Tests.SpecificCases {
 	/**
 	* @inheritdoc
 	*/

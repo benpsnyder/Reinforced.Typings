@@ -45,7 +45,19 @@ jobs:
         run: dotnet pack Reinforced.Typings/Reinforced.Typings.csproj -c Release -o artifacts
 
       - name: End-to-end (net10.0, net11.0)
-        run: dotnet run e2e/run.cs -- --feed artifacts --version 3.0.0 --frameworks net10.0,net11.0 --bypass-run --work ${{ runner.temp }}/rt-e2e
+        run: dotnet run e2e/run.cs -- --feed artifacts --version 3.1.0 --frameworks net10.0,net11.0 --bypass-run --modern-run --check-run --work ${{ runner.temp }}/rt-e2e
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The default output must compile under TypeScript 6 and 7 in strict mode. Pinned to the
+      # packages behind the in-house consumer's tsc6/tsc7 binaries, plus effect for the schema golden.
+      - name: Type-check goldens (TypeScript 6.0.2 and 7.0.2, strict)
+        run: |
+          npm install --no-save --no-audit --no-fund --prefix "${{ runner.temp }}/tstools" @typescript/typescript6@6.0.2 typescript@7.0.2 effect@4.1.3
+          dotnet run e2e/typecheck.cs -- --node-modules "${{ runner.temp }}/tstools/node_modules" --work "${{ runner.temp }}/rt-typecheck"
 
       - name: Upload package
         uses: actions/upload-artifact@v4
@@ -92,5 +104,5 @@ jobs:
           $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
           if (-not $msbuild) { throw 'MSBuild.exe not found' }
           Write-Host "Using $msbuild"
-          dotnet run e2e/run.cs -- --feed artifacts --version 3.0.0 --frameworks net481,net10.0,net11.0 --msbuild "$msbuild" --work "${{ runner.temp }}\rt-e2e"
+          dotnet run e2e/run.cs -- --feed artifacts --version 3.1.0 --frameworks net481,net10.0,net11.0 --modern-run --msbuild "$msbuild" --work "${{ runner.temp }}\rt-e2e"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

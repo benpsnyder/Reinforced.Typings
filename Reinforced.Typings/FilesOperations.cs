@@ -13,7 +13,7 @@ namespace Reinforced.Typings
     /// <summary>
     /// Implementation of file operations abstraction
     /// </summary>
-    public class FilesOperations : IFilesOperations
+    public class FilesOperations : IFilesOperations, ITextFilesOperations
     {
         private readonly List<string> _tmpFiles = new List<string>();
 
@@ -27,6 +27,8 @@ namespace Reinforced.Typings
         /// </summary>
         public void DeployTempFiles()
         {
+            var checkMode = Context != null && Context.CheckMode;
+            var drift = new List<string>();
             foreach (var tmpFile in _tmpFiles)
             {
                 var origFile = Path.GetFileNameWithoutExtension(tmpFile);
@@ -34,6 +36,23 @@ namespace Reinforced.Typings
                 origFile = Path.Combine(origDir, origFile);
                 try
                 {
+                    var unchanged = HasSameContent(tmpFile, origFile);
+                    if (checkMode)
+                    {
+                        // Check mode never touches the committed output: compare, then discard.
+                        if (!unchanged) drift.Add(origFile);
+                        File.Delete(tmpFile);
+                        continue;
+                    }
+
+                    if (unchanged)
+                    {
+                        // Keep the existing file (and its timestamp) when the content is identical,
+                        // so that downstream tooling watching the output is not invalidated.
+                        File.Delete(tmpFile);
+                        continue;
+                    }
+
                     if (File.Exists(origFile)) File.Delete(origFile);
                     File.Move(tmpFile, origFile);
 #if DEBUG
@@ -43,6 +62,48 @@ namespace Reinforced.Typings
                 catch (Exception ex)
                 {
                     ErrorMessages.RTE0002_DeployingFilesError.Throw(origFile, ex.Message);
+                }
+            }
+
+            if (drift.Count > 0)
+            {
+                ErrorMessages.RTE0019_CheckModeDrift.Throw(drift.Count, string.Join("; ", drift));
+            }
+        }
+
+        /// <summary>
+        /// Returns true when both files exist and have byte-identical content
+        /// </summary>
+        /// <param name="left">First file</param>
+        /// <param name="right">Second file</param>
+        public static bool HasSameContent(string left, string right)
+        {
+            if (!File.Exists(left) || !File.Exists(right)) return false;
+            if (new FileInfo(left).Length != new FileInfo(right).Length) return false;
+            var a = File.ReadAllBytes(left);
+            var b = File.ReadAllBytes(right);
+            if (a.Length != b.Length) return false;
+            for (var i = 0; i < a.Length; i++)
+            {
+                if (a[i] != b[i]) return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Writes raw text content (for example the Effect Schema module) through the same
+        /// temporary-file and deployment path as generated TypeScript files.
+        /// </summary>
+        /// <param name="fileName">Target file</param>
+        /// <param name="content">File content</param>
+        public void ExportText(string fileName, string content)
+        {
+            using (var fs = GetTmpFile(fileName))
+            {
+                using (var tw = new StreamWriter(fs))
+                {
+                    tw.NewLine = Context.Global.NewLine;
+                    tw.Write(content);
                 }
             }
         }

@@ -10,6 +10,7 @@ namespace Reinforced.Typings.Visitors.TypeScript
         public override void Visit(RtImport node)
         {
             Write("import ");
+            if (node.IsTypeOnly && node.Target != null && !node.IsRequire) Write("type ");
             if (node.Target != null)
             {
                 Write(node.Target);

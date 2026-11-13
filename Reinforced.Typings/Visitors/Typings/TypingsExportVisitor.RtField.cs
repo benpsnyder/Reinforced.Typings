@@ -15,9 +15,11 @@ namespace Reinforced.Typings.Visitors.Typings
             if (Context == WriterContext.None) Write("declare var ");
             if (Context == WriterContext.Class) Modifiers(node);
 
+            if (node.IsReadonly && (Context == WriterContext.Class || Context == WriterContext.Interface)) Write("readonly ");
             Visit(node.Identifier);
             Write(": ");
             Visit(node.Type);
+            if (node.IsNullableType) Write(" | null");
             WriteLine(";");
             if (!string.IsNullOrEmpty(node.LineAfter))
             {

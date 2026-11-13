@@ -37,6 +37,11 @@ namespace Reinforced.Typings.Ast
         /// </summary>
         public bool IsConst { get; set; }
 
+        /// <summary>
+        /// When true, the enum is emitted as a union type of its values ("type X = 0 | 1" or "type X = 'A' | 'B'")
+        /// </summary>
+        public bool IsUnionType { get; set; }
+
         /// <inheritdoc />
         public override IEnumerable<RtNode> Children
         {

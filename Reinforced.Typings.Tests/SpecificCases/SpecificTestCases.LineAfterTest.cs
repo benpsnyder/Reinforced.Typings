@@ -31,7 +31,7 @@ namespace Reinforced.Typings.Tests.SpecificCases
         [Fact]
         public void LineAfterTest()
         {
-            const string result = @"module Reinforced.Typings.Tests.SpecificCases {
+            const string result = @"namespace Reinforced.Typings.Tests.SpecificCases {
 	export enum TestEnum2 {
 		/** C Value */
 		C = 0,

@@ -120,6 +120,20 @@ namespace Reinforced.Typings.Fluent
         }
 
         /// <summary>
+        /// Converts inline XML documentation tags to JSDoc: see/seealso cref to {@link X} when X is an
+        /// exported type and to plain text otherwise; paramref, typeparamref and see langword to their
+        /// names; c and code to backtick code. Without it the tags are copied as they are.
+        /// </summary>
+        /// <param name="builder">Conf builder</param>
+        /// <param name="convert">True to convert</param>
+        public static GlobalConfigurationBuilder ConvertDocumentationTags(this GlobalConfigurationBuilder builder,
+            bool convert = true)
+        {
+            builder.Parameters.ConvertDocumentationTags = convert;
+            return builder;
+        }
+
+        /// <summary>
         /// Enables adaptation for TS modules system (--modules tsc.exe option)
         /// </summary>
         /// <param name="builder">Conf builder</param>
@@ -207,6 +221,19 @@ namespace Reinforced.Typings.Fluent
         }
 
         /// <summary>
+        /// Emits "namespace X {" instead of the legacy "module X {" for namespace output.
+        /// TypeScript 6 and 7 reject "module X {}" with error TS1540. On by default since 3.1.0;
+        /// call UseNamespaceKeyword(false) to restore the legacy "module" keyword.
+        /// </summary>
+        /// <param name="builder">Conf builder</param>
+        /// <param name="value">True (default) for "namespace", false for the legacy "module" keyword</param>
+        public static GlobalConfigurationBuilder UseNamespaceKeyword(this GlobalConfigurationBuilder builder, bool value = true)
+        {
+            builder.Parameters.UseNamespaceKeyword = value;
+            return builder;
+        }
+
+        /// <summary>
         ///     Makes RT automatically to turn methods returning Task into async ones
         /// </summary>
         /// <param name="builder">Conf builder</param>
@@ -215,6 +242,72 @@ namespace Reinforced.Typings.Fluent
             bool value = true)
         {
             builder.Parameters.AutoAsync = value;
+            return builder;
+        }
+
+        /// <summary>
+        /// Honour System.Text.Json attributes (JsonPropertyName, JsonIgnore, JsonPropertyOrder, JsonStringEnumConverter, JsonStringEnumMemberName, JsonPolymorphic/JsonDerivedType). Attributes are detected by full name, so no System.Text.Json reference is needed. Default false.
+        /// </summary>
+        /// <param name="builder">Conf builder</param>
+        /// <param name="value">True to enable</param>
+        public static GlobalConfigurationBuilder UseSystemTextJson(this GlobalConfigurationBuilder builder, bool value = true)
+        {
+            builder.Parameters.UseSystemTextJson = value;
+            return builder;
+        }
+
+        /// <summary>
+        /// Property naming policy that mirrors System.Text.Json's JsonNamingPolicy. Applies to properties without an explicit name and takes precedence over CamelCaseForProperties. Default None.
+        /// </summary>
+        /// <param name="builder">Conf builder</param>
+        /// <param name="policy">Naming policy</param>
+        public static GlobalConfigurationBuilder JsonNamingPolicy(this GlobalConfigurationBuilder builder, JsonNamingPolicyKind policy)
+        {
+            builder.Parameters.JsonNamingPolicy = policy;
+            return builder;
+        }
+
+        /// <summary>
+        /// Emit "import type" for imports generated for types exported as interfaces (module mode). Default false.
+        /// </summary>
+        /// <param name="builder">Conf builder</param>
+        /// <param name="value">True to enable</param>
+        public static GlobalConfigurationBuilder UseTypeImports(this GlobalConfigurationBuilder builder, bool value = true)
+        {
+            builder.Parameters.UseTypeImports = value;
+            return builder;
+        }
+
+        /// <summary>
+        /// Emit enums as union types of their values (string or number literals) instead of TypeScript enums. Default false.
+        /// </summary>
+        /// <param name="builder">Conf builder</param>
+        /// <param name="value">True to enable</param>
+        public static GlobalConfigurationBuilder EnumsAsUnionTypes(this GlobalConfigurationBuilder builder, bool value = true)
+        {
+            builder.Parameters.EnumsAsUnionTypes = value;
+            return builder;
+        }
+
+        /// <summary>
+        /// Emit exported properties and fields as readonly. Default false.
+        /// </summary>
+        /// <param name="builder">Conf builder</param>
+        /// <param name="value">True to enable</param>
+        public static GlobalConfigurationBuilder ReadonlyProperties(this GlobalConfigurationBuilder builder, bool value = true)
+        {
+            builder.Parameters.ReadonlyProperties = value;
+            return builder;
+        }
+
+        /// <summary>
+        /// Distinguish optional from nullable: nullable types are emitted as "T | null" and stay required; "?" is reserved for members that may be absent (forced optional, or JsonIgnore WhenWritingNull/WhenWritingDefault). Takes precedence over AutoOptionalProperties for nullability. Default false.
+        /// </summary>
+        /// <param name="builder">Conf builder</param>
+        /// <param name="value">True to enable</param>
+        public static GlobalConfigurationBuilder StrictNullability(this GlobalConfigurationBuilder builder, bool value = true)
+        {
+            builder.Parameters.StrictNullability = value;
             return builder;
         }
 

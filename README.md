@@ -27,6 +27,13 @@ dotnet add package Reinforced.Typings.vNext
 
 News
 =================
+> Version **3.1.0**
+
+**Behaviour change:** the default output now compiles under TypeScript 6 and 7 in strict mode, so it differs from 3.0.0 in exactly two ways: namespaces are written `namespace X {` instead of `module X {` (TypeScript 6 and 7 reject `module X {}` with error TS1540), and the stub bodies of exported class methods are `return null!;` instead of `return null;` (TS2322 under `strictNullChecks`; `Promise.resolve(null)` likewise becomes `Promise.resolve(null!)`). `UseNamespaceKeyword(false)` restores the `module` keyword. Every other new behaviour is opt-in.
+
+- Generated files whose content did not change are no longer rewritten, so their timestamps survive and TypeScript watchers and incremental builds are not invalidated (always on; it changes no content).
+- **Check mode** for CI drift gates, **System.Text.Json awareness**, **modern TypeScript output options**, an **Effect Schema emitter** and **skipping unchanged generations**: see [3.1.0 options](#310-options).
+
 > Version **3.0.0**
 
 - Supports projects targeting .NET 11, .NET 10 and .NET Framework 4.8.1 (`net11.0`, `net10.0`, `net481`). `net12.0` and later run the `net11.0` tool with major-version roll-forward; `netstandard2.x` projects use the tool matching the SDK.
@@ -40,10 +47,64 @@ News
 Simply replace your NuGet package reference:
 ```diff
 - <PackageReference Include="Reinforced.Typings" Version="1.6.7" />
-+ <PackageReference Include="Reinforced.Typings.vNext" Version="3.0.0" />
++ <PackageReference Include="Reinforced.Typings.vNext" Version="3.1.0" />
 ```
 
-No code changes required - all namespaces remain `Reinforced.Typings.*`.
+No code changes required - all namespaces remain `Reinforced.Typings.*`. Only the NuGet package id (`Reinforced.Typings.vNext`) and the package's targets file name carry `vNext`: the assemblies are still `Reinforced.Typings`, `Reinforced.Typings.Integrate` and `rtcli`, `using Reinforced.Typings...` directives are unchanged, the settings file is still `Reinforced.Typings.settings.xml`, and MSBuild properties keep the `Rt*` prefix. A unit test guards the public namespaces and the assembly name.
+
+### 3.1.0 options
+
+MSBuild properties (set them in `Reinforced.Typings.settings.xml`, the project file, or on the command line):
+
+| Property | rtcli argument | Default | Effect |
+| --- | --- | --- | --- |
+| `RtCheckMode` | `CheckMode=true` | `false` | Generates in memory and compares with the files on disk; nothing is written. Any difference fails the build with `error RT0019` naming the files (`RTE0019_CheckModeDrift` in the API). For CI: `dotnet build -p:RtCheckMode=true`. |
+| `RtEffectSchemaFile` | `EffectSchemaFile=path` | empty | Also writes an Effect Schema module to this file (see below). Relative paths are relative to the project directory. |
+| `RtSkipUnchanged` | none (task only) | `false` | Does not start rtcli when nothing relevant changed since the last successful generation (see below). |
+| `RtForce` | none (task only) | `false` | With `RtSkipUnchanged`, regenerates anyway. |
+
+Generation options (fluent `builder.Global(g => g...)` or `[assembly: TsGlobal(...)]`):
+
+| Fluent method / `TsGlobal` property | Default | Effect |
+| --- | --- | --- |
+| `UseSystemTextJson()` / `UseSystemTextJson` | off | Honours System.Text.Json attributes. `[JsonPropertyName]` renames (an explicit `TsProperty` name still wins). `[JsonIgnore]` drops the member; with `Condition = WhenWritingNull` or `WhenWritingDefault` the member is kept but optional (`?`), since it may be absent. `[JsonPropertyOrder]` orders members unless a `TsProperty` order is set. An enum with `[JsonConverter(typeof(JsonStringEnumConverter))]` (or the generic converter) is exported with string values, using `[JsonStringEnumMemberName]` when present. A type with `[JsonDerivedType]` (and optionally `[JsonPolymorphic(TypeDiscriminatorPropertyName = ...)]`, default `$type`) also gets a discriminated union alias, `export type <Name>Union = ({ "$type": "a" } & A) \| ...`. Attributes are found by full name through reflection, so no package is added and .NET Framework consumers work unchanged. Not honoured, because reflection cannot see them: converters on individual properties, converters and naming policies registered in `JsonSerializerOptions`. |
+| `JsonNamingPolicy(JsonNamingPolicyKind.X)` / `JsonNamingPolicy` | `None` | `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, `KebabCaseUpper`, matching System.Text.Json's `JsonNamingPolicy` (unit-tested against it on .NET). Applies to properties without an explicit name and takes precedence over `CamelCaseForProperties`. Works with or without `UseSystemTextJson`. |
+| `UseTypeImports()` / `UseTypeImports` | off | Module mode: imports that RT generates for types exported as interfaces (and for enums with `EnumsAsUnionTypes`) are written as `import type`. |
+| `EnumsAsUnionTypes()` / `EnumsAsUnionTypes` | off | Enums become `export type E = 0 \| 1` or `"A" \| "B"` instead of `enum`. Code that uses enum members as values (`E.A`, for example in constant initializers) does not compile with this option. |
+| `ReadonlyProperties()` / `ReadonlyProperties` | off | Properties and fields are emitted as `readonly`. |
+| `StrictNullability()` / `StrictNullability` | off | Separates nullable from optional: `int?` and nullable reference types become `T \| null` and stay required; `?` is used only for members that may be absent (`ForceNullable`, or `JsonIgnore` WhenWritingNull/WhenWritingDefault). While on, it replaces `AutoOptionalProperties` for nullability. |
+| `UseNamespaceKeyword(false)` / `UseNamespaceKeyword = false` | **on** | On by default since 3.1.0: writes `namespace X {` (and `declare namespace X {` for `.d.ts`) instead of the legacy `module X {`, because TypeScript 6 and 7 both reject `module X {}` with **error TS1540**, also with `ignoreDeprecations: "6.0"`. Set it to `false` only if you need the 3.0.0 keyword for an older compiler. Upstream [#286](https://github.com/reinforced/Reinforced.Typings/issues/286). |
+| `ConvertDocumentationTags()` / `ConvertDocumentationTags` | off | Converts inline XML documentation tags in JSDoc: `<see cref="T:X"/>` and `<seealso>` become `{@link X}` when X is an exported type and plain text otherwise (members become `Type.Member`); `<see href>` becomes `{@link url text}`; `<see langword>`, `<paramref>`, `<typeparamref>` become their names; `<c>`/`<code>` become backtick code; other tags keep their text. Without it the XML is copied as it is. Upstream [#310](https://github.com/reinforced/Reinforced.Typings/issues/310). |
+
+#### Upstream issues fixed in 3.1.0
+
+Always on, because they only remove build failures or invalid output:
+
+- [#313](https://github.com/reinforced/Reinforced.Typings/issues/313), [#231](https://github.com/reinforced/Reinforced.Typings/issues/231): a build with `TypeScriptTarget` set but no TypeScript MSBuild targets imported no longer fails with MSB4057 "The target CompileTypeScript does not exist"; projects that do import them still compile their TypeScript after generation.
+- [#284](https://github.com/reinforced/Reinforced.Typings/issues/284), [#206](https://github.com/reinforced/Reinforced.Typings/issues/206): RT0999 "Could not load file or assembly System.Text.Json, Version=11.0.0.0" when the consumer references a package newer than the runtime that runs rtcli; the runtime's copy of the assembly is used instead.
+- [#250](https://github.com/reinforced/Reinforced.Typings/issues/250): explicit interface implementations (`string IFoo.Bar`) are no longer exported (they produced `Namespace.IFoo.Bar: string`, which is not valid TypeScript); the interface is exported on its own.
+- [#221](https://github.com/reinforced/Reinforced.Typings/issues/221): `ulong` enums with values above `long.MaxValue` no longer throw; negative values of signed enums stay negative.
+- [#226](https://github.com/reinforced/Reinforced.Typings/issues/226): `rtcli profile` without a path prints usage and exits with code 1 instead of throwing; a missing profile file also exits with code 1.
+
+On by default with an opt-out, because the old output does not compile under TypeScript 6 and 7: `UseNamespaceKeyword` ([#286](https://github.com/reinforced/Reinforced.Typings/issues/286)), plus `return null!;` stub method bodies. Opt-in: `ConvertDocumentationTags` ([#310](https://github.com/reinforced/Reinforced.Typings/issues/310)). Both are in the table above.
+
+CI type-checks every e2e golden file (default output, the modern variant and the Effect Schema module) with TypeScript 6.0.2 (`@typescript/typescript6`) and 7.0.2 (`typescript`) in strict mode; locally: `npm install --no-save --prefix <dir> @typescript/typescript6@6.0.2 typescript@7.0.2 effect@4.1.3`, then `dotnet run e2e/typecheck.cs -- --node-modules <dir>/node_modules`.
+
+#### Effect Schema emitter
+
+With `RtEffectSchemaFile` set, the build also writes an ES module for [Effect](https://effect.website) 4 (`import { Schema } from "effect"`). It is derived from the same model as the TypeScript output, so names, optionality, nullability, substitutions and the System.Text.Json options above apply. For each exported DTO `X` it emits `export const X = Schema.Struct({...})`, `export type X = typeof X.Type` and `export type XEncoded = typeof X.Encoded` (an interface's leading `I` is dropped):
+
+- interfaces, and classes that have properties (classes with only methods are not DTOs and are left out); base types are spread with `...Base.fields`;
+- optional members use `Schema.optionalKey`, `T | null` uses `Schema.NullOr`; arrays `Schema.Array`, string- or number-keyed dictionaries `Schema.Record`, tuples `Schema.Tuple`;
+- enums become `Schema.Literals([...])` with their numeric or string values;
+- System.Text.Json discriminated unions become `Schema.Union([Schema.Struct({ ...A.fields, kind: Schema.Literal("a") }), ...])`;
+- generic types, types in a reference cycle, and anything that depends on them are not emitted (warning RTW0017); a TypeScript type with no schema equivalent (a raw `TsProperty(Type = ...)`, enum-keyed dictionaries) becomes `Schema.Unknown` (warning RTW0016).
+
+Definitions are ordered so that each schema is declared before it is used. The module generated for the end-to-end consumer is type-checked with TypeScript 6.0 (`strict`, `exactOptionalPropertyTypes`) against `effect` 4.1.3.
+
+#### Skipping unchanged generations
+
+With `RtSkipUnchanged=true` the MSBuild task computes a key from the content of the source assemblies (`IntermediateAssembly` and `RtAdditionalAssembly`) and of the XML documentation file; the path, length and last-write time of every reference, of the task and of the rtcli tool; every setting passed to rtcli; and the content of the current generated output (the target file, or every file under `RtTargetDirectory`, plus the Effect Schema file). If the key equals the one stored in `obj/.../Reinforced.Typings.stamp` by the last successful run, rtcli is not started. Editing or deleting generated output, rebuilding a referenced project, or changing any setting regenerates; check mode never skips; a failed run deletes the stamp. Limitation: an assembly that rtcli resolves from the source assembly's folder without it being in the reference list is not part of the key; set `RtForce=true` if you depend on that.
 
 Best to be used for
 =================
