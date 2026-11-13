@@ -218,3 +218,6 @@ docplan.txt
 
 \.idea/
 /package
+
+# Stray XML-doc output from the old .Dev projects
+*.Dev.xml
